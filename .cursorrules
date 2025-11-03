@@ -1,0 +1,127 @@
+# === INCIDENT BOT — DEVELOPMENT RULES ===
+# These rules define how the assistant (Claude / Cursor AI) should reason, generate, and structure code
+# in the Incident Bot (Slack ↔ Notion integration) project.
+
+project_name: Incident Bot
+description: Slack + Notion integration for structured, blameless incident management at Appunite.
+
+---
+
+## 🧭 CONTEXT & PURPOSE
+- This is an internal tool for Appunite.
+- Core use case: reporting and managing service incidents via Slack → stored in Notion.
+- Notion is the **single source of truth** (no external DB).
+- Slack is the **primary UX layer** (commands, modals, threads, notifications).
+- Tone of bot messages: neutral, factual, human (no emojis unless for structure).
+
+---
+
+## 📂 PROJECT STRUCTURE
+- All code lives under `/src/`
+- Folders:
+  - `/src/slack` → Slack app handlers (commands, modals, events)
+  - `/src/notion` → Notion API helpers
+  - `/src/utils` → utilities and logging
+  - `/src/app.ts` → Slack Bolt app initialization
+  - `/src/server.ts` → express server wrapper
+
+Never flatten this structure unless explicitly asked.
+
+---
+
+## 🧱 TECHNOLOGY RULES
+- Language: TypeScript (strict mode ON)
+- Runtime: Node.js 18+
+- Frameworks:
+  - Slack Bolt SDK (`@slack/bolt`)
+  - Notion SDK (`@notionhq/client`)
+  - Express for healthcheck endpoint
+- No ORM, no local DB (Notion = storage)
+- All secrets must come from `.env` via `process.env`
+
+---
+
+## 🧰 IMPLEMENTATION GUIDELINES
+- Each Slack command handler lives in its own file under `/src/slack/commands/`.
+- Each modal submission handler lives under `/src/slack/modals/`.
+- Use clear function names:
+  - `registerIncidentCommand(app)`
+  - `handleIncidentModalSubmission(app)`
+- Keep responses short and structured (≤ 500 chars per Slack message).
+- Prefer `async/await`, never `.then()` chains.
+- Catch and log all errors (use `logger.ts`).
+
+---
+
+## 🧠 BUSINESS LOGIC RULES
+- When user triggers `/incident`, open a modal defined in `incidentModal.ts`
+- Modal → Title, Description, Severity, Area
+- On submission → call `createIncident()` from `/src/notion/createIncident.ts`
+- Store:
+  - Title
+  - Description
+  - Severity
+  - Reporter
+  - CreatedFrom = "Automatic"
+  - SlackThreadID / SlackChannelID
+- Post Slack confirmation message (in thread or DM).
+- Daily job: summarize “unassigned” incidents and post in channel `#incident-digest`.
+- Postmortem reminder after 24h of “Resolved”.
+
+---
+
+## 🔁 SYNC RULES
+- Sync direction: Notion → Slack every 5 min.
+- Compare `last_edited_time` from Notion.
+- If `Status` or `Owner` changed → post update to Slack thread.
+- Keep cache of `lastSynced` timestamps in memory (or local JSON file).
+- Never overwrite Notion content from Slack unless explicit command.
+
+---
+
+## 🧩 CODE STYLE
+- ESLint: recommended rules (no console.log in production)
+- Comments: English, concise
+- Commit messages: Conventional Commits (e.g. `feat: add incident modal handler`)
+- Function names: descriptive, camelCase
+- Files: kebab-case (e.g. `create-incident.ts`)
+- Exports: default for main handlers, named for utilities
+
+---
+
+## 🧱 DOCUMENTATION
+- Always update `/docs/` if implementation deviates from design.
+- Link relevant sections in PR descriptions (e.g. “Implements section 3.2 of INCIDENT_FLOW.md”).
+
+---
+
+## 🧩 COMMUNICATION STYLE (for Claude or Cursor AI)
+When planning tasks:
+- Reference `/docs/PROJECT_OVERVIEW.md` for business intent
+- Reference `/docs/INCIDENT_FLOW.md` for behavior
+- Reference `/docs/API_REFERENCE.md` for method definitions
+When uncertain, ask clarifying questions before coding.
+When generating code, include:
+- Inline comments for reasoning
+- Example logs for debugging
+- Minimal output to Slack
+
+---
+
+## 🧩 TESTING
+- Local tests: use mock Notion responses and Slack payload samples.
+- Don’t mock with Jest — use inline fixtures in `/src/tests/fixtures/`.
+- Include at least one `test-incident.json` file for integration simulation.
+
+---
+
+## 🪄 AI-SPECIFIC RULES
+- Claude/Cursor must **not hallucinate API endpoints**.
+- Always use real Slack + Notion SDK syntax.
+- Respect file structure and naming — create missing files when needed.
+- Always import from relative paths (`../notion/client` etc.)
+- After implementing new feature, generate or update docs in `/docs/`.
+
+---
+
+# ✅ END OF RULES
