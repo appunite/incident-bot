@@ -28,72 +28,81 @@ export async function createIncident(
       area: data.area,
     });
 
+    const properties: any = {
+      // Title property (title type)
+      Title: {
+        title: [
+          {
+            text: {
+              content: data.title,
+            },
+          },
+        ],
+      },
+      // Description (text type) - keeping as property for quick reference/filtering
+      Description: {
+        rich_text: [
+          {
+            text: {
+              content: data.description.substring(0, 2000), // Truncate to first 2000 chars for property
+            },
+          },
+        ],
+      },
+      // Status (status type) - Notion's built-in status property
+      Status: {
+        status: {
+          name: 'Open',
+        },
+      },
+      // Severity (select type)
+      Severity: {
+        select: {
+          name: data.severity,
+        },
+      },
+      // Area (select type)
+      Area: {
+        select: {
+          name: data.area,
+        },
+      },
+      // Detected Date (date type) - when incident was detected/reported
+      'Detected Date': {
+        date: {
+          start: new Date().toISOString(),
+        },
+      },
+      // Created From (select type) - origin of the incident record
+      'Created From': {
+        select: {
+          name: 'Automatic',
+        },
+      },
+      // Trigger (text type) - how this incident was triggered
+      Trigger: {
+        rich_text: [
+          {
+            text: {
+              content: 'Slack /incident command',
+            },
+          },
+        ],
+      },
+    };
+
+    // Add Reporter field if Notion user was found
+    if (data.reporterNotionId) {
+      properties.Reporter = {
+        people: [{ id: data.reporterNotionId }],
+      };
+    }
+
     const response = await notionClient.pages.create({
       parent: {
         database_id: INCIDENTS_DB_ID,
       },
-      properties: {
-        // Title property (title type)
-        Title: {
-          title: [
-            {
-              text: {
-                content: data.title,
-              },
-            },
-          ],
-        },
-        // Description (text type) - keeping as property for quick reference/filtering
-        Description: {
-          rich_text: [
-            {
-              text: {
-                content: data.description.substring(0, 2000), // Truncate to first 2000 chars for property
-              },
-            },
-          ],
-        },
-        // Status (status type) - Notion's built-in status property
-        Status: {
-          status: {
-            name: 'Open',
-          },
-        },
-        // Severity (select type)
-        Severity: {
-          select: {
-            name: data.severity,
-          },
-        },
-        // Area (select type)
-        Area: {
-          select: {
-            name: data.area,
-          },
-        },
-        // Detected Date (date type) - when incident was detected/reported
-        'Detected Date': {
-          date: {
-            start: new Date().toISOString(),
-          },
-        },
-        // Created From (select type) - origin of the incident record
-        'Created From': {
-          select: {
-            name: 'Automatic',
-          },
-        },
-        // Trigger (text type) - how this incident was triggered
-        Trigger: {
-          rich_text: [
-            {
-              text: {
-                content: 'Slack /incident command',
-              },
-            },
-          ],
-        },
-      },
+      properties,
       // Add structured page content using template
       children: buildIncidentPageBlocks({
         description: data.description,

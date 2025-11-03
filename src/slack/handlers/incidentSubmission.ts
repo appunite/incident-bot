@@ -9,6 +9,7 @@ import { IncidentFormData } from '../../types/incident';
 import { slackApp } from '../client';
 import { createConfirmationMessage } from '../messages/confirmationMessage';
 import { updateIncidentWithSlackThread } from '../../notion/updateIncident';
+import { findNotionUserByEmail } from '../../notion/findUser';
 
 const logger = createModuleLogger('incident-submission');
 
@@ -40,6 +41,13 @@ export async function handleIncidentSubmission({
     // Get user info
     const userInfo = await client.users.info({ user: body.user.id });
     const userName = userInfo.user?.real_name || userInfo.user?.name || 'Unknown';
+    const userEmail = userInfo.user?.profile?.email;
+
+    // Find Notion user by email for Reporter field
+    let reporterNotionId: string | undefined;
+    if (userEmail) {
+      reporterNotionId = await findNotionUserByEmail(userEmail);
+    }
 
     // Get channel info - use the channel where the command was invoked
     const channelId = body.view.private_metadata || body.user.id;
@@ -49,6 +57,8 @@ export async function handleIncidentSubmission({
       severity,
       area,
       userName,
+      userEmail,
+      reporterNotionId,
     });
 
     // Prepare incident data
@@ -61,6 +71,7 @@ export async function handleIncidentSubmission({
       createdByName: userName,
       slackChannelId: channelId,
       slackChannelName: 'DM',
+      reporterNotionId,
     };
 
     // Create incident in Notion

@@ -19,6 +19,7 @@ export interface IncidentFormData {
   createdByName: string; // Slack user display name
   slackChannelId: string;
   slackChannelName: string;
+  reporterNotionId?: string; // Notion user ID for Reporter field
 }
 
 export interface NotionIncidentProperties {
