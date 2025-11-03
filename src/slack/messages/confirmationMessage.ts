@@ -3,7 +3,7 @@
  * Posted to Slack after incident creation
  */
 
-import { IncidentFormData } from '../../types/incident';
+import { IncidentFormData, IncidentSeverity } from '../../types/incident';
 
 interface ConfirmationMessageOptions {
   incidentData: IncidentFormData;
@@ -19,14 +19,15 @@ export function createConfirmationMessage({
   notionPageUrl,
   notionPageId,
 }: ConfirmationMessageOptions) {
-  const severityEmoji = {
+  const severityEmojiMap: Record<IncidentSeverity, string> = {
     '🔥 Critical': '🔥',
     '🔥 High': '🔥',
     'ASAP': '⚡',
     'High': '🟠',
     'Normal': '🟡',
     'Low': '🟢',
-  }[incidentData.severity] || '⚪';
+  };
+  const severityEmoji = severityEmojiMap[incidentData.severity] || '⚪';
 
   return {
     text: `New incident reported: ${incidentData.title}`,
