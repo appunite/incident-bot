@@ -86,6 +86,15 @@ export function createIncidentModal(options?: IncidentModalOptions): View {
         element: descriptionElement,
       },
       {
+        type: 'context',
+        elements: [
+          {
+            type: 'mrkdwn',
+            text: '💡 _You can edit or complete this description in Notion after submission_',
+          },
+        ],
+      },
+      {
         type: 'input',
         block_id: 'severity_block',
         label: {
