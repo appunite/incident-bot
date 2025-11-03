@@ -23,15 +23,21 @@ export async function handleIncidentCommand({
     // Acknowledge the command request immediately
     await ack();
 
+    // Extract text from command (everything after /incident)
+    const commandText = command.text?.trim() || '';
+
     logger.info('Opening incident modal', {
       userId: command.user_id,
       channelId: command.channel_id,
+      commandText,
     });
 
-    // Open the modal
+    // Open the modal with optional initial title from command text
     await client.views.open({
       trigger_id: command.trigger_id,
-      view: createIncidentModal(),
+      view: createIncidentModal({
+        initialTitle: commandText || undefined,
+      }),
     });
 
     logger.info('Incident modal opened successfully', {

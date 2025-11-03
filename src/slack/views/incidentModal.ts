@@ -5,10 +5,31 @@
 
 import { View } from '@slack/bolt';
 
+interface IncidentModalOptions {
+  initialTitle?: string;
+}
+
 /**
  * Creates the incident creation modal view
+ * @param options - Optional configuration for the modal
+ * @param options.initialTitle - Optional initial value for the title field
  */
-export function createIncidentModal(): View {
+export function createIncidentModal(options?: IncidentModalOptions): View {
+  const titleElement: any = {
+    type: 'plain_text_input',
+    action_id: 'title_input',
+    placeholder: {
+      type: 'plain_text',
+      text: 'Brief description of the incident',
+    },
+    max_length: 200,
+  };
+
+  // Add initial_value if provided
+  if (options?.initialTitle) {
+    titleElement.initial_value = options.initialTitle;
+  }
+
   return {
     type: 'modal',
     callback_id: 'incident_modal',
@@ -32,15 +53,7 @@ export function createIncidentModal(): View {
           type: 'plain_text',
           text: 'Incident Title',
         },
-        element: {
-          type: 'plain_text_input',
-          action_id: 'title_input',
-          placeholder: {
-            type: 'plain_text',
-            text: 'Brief description of the incident',
-          },
-          max_length: 200,
-        },
+        element: titleElement,
       },
       {
         type: 'input',
