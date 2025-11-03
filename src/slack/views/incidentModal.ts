@@ -4,11 +4,13 @@
  */
 
 import { View } from '@slack/bolt';
+import { Team } from '../../notion/getTeams';
 
 interface IncidentModalOptions {
   initialTitle?: string;
   initialDescription?: string;
   privateMetadata?: string;
+  teams?: Team[];
 }
 
 /**
@@ -17,6 +19,7 @@ interface IncidentModalOptions {
  * @param options.initialTitle - Optional initial value for the title field
  * @param options.initialDescription - Optional initial value for the description field
  * @param options.privateMetadata - Optional metadata to pass through the modal
+ * @param options.teams - Optional teams list for team selector
  */
 export function createIncidentModal(options?: IncidentModalOptions): View {
   const titleElement: any = {
@@ -260,6 +263,36 @@ export function createIncidentModal(options?: IncidentModalOptions): View {
           max_length: 1000,
         },
       },
-    ],
+    ].concat(
+      // Add team selector if teams are available
+      (options?.teams && options.teams.length > 0
+        ? [
+            {
+              type: 'input' as const,
+              block_id: 'team_block',
+              optional: true,
+              label: {
+                type: 'plain_text' as const,
+                text: 'Team',
+              },
+              element: {
+                type: 'multi_static_select' as const,
+                action_id: 'team_input',
+                placeholder: {
+                  type: 'plain_text' as const,
+                  text: 'Select teams',
+                },
+                options: options.teams.map((team) => ({
+                  text: {
+                    type: 'plain_text' as const,
+                    text: team.name,
+                  },
+                  value: team.id,
+                })),
+              },
+            },
+          ]
+        : []) as any
+    ),
   };
 }

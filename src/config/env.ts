@@ -35,6 +35,7 @@ export function loadEnvConfig(): EnvConfig {
     SLACK_DIGEST_CHANNEL_ID: process.env.SLACK_DIGEST_CHANNEL_ID,
     NOTION_TOKEN: process.env.NOTION_TOKEN!,
     NOTION_DB_ID: process.env.NOTION_DB_ID!,
+    NOTION_TEAMS_DB_ID: process.env.NOTION_TEAMS_DB_ID,
     PORT: parseInt(process.env.PORT || '3000', 10),
     NODE_ENV: (process.env.NODE_ENV || 'development') as EnvConfig['NODE_ENV'],
   };

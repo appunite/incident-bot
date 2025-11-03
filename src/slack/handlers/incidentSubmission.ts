@@ -40,6 +40,7 @@ export async function handleIncidentSubmission({
     const happenedDate = values.happened_date_block?.happened_date_input?.selected_date || undefined;
     const dueDate = values.due_date_block?.due_date_input?.selected_date || undefined;
     const whyItMatters = values.why_it_matters_block?.why_it_matters_input?.value || undefined;
+    const teamIds = values.team_block?.team_input?.selected_options?.map((opt: any) => opt.value) || undefined;
 
     // Get user info
     const userInfo = await client.users.info({ user: body.user.id });
@@ -97,6 +98,7 @@ export async function handleIncidentSubmission({
       happenedDate,
       dueDate,
       whyItMatters,
+      teamIds,
     };
 
     // Create incident in Notion

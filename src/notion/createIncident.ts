@@ -116,6 +116,13 @@ export async function createIncident(
       };
     }
 
+    // Add Team relation if provided
+    if (data.teamIds && data.teamIds.length > 0) {
+      properties.Team = {
+        relation: data.teamIds.map((id) => ({ id })),
+      };
+    }
+
     const response = await notionClient.pages.create({
       parent: {
         database_id: INCIDENTS_DB_ID,

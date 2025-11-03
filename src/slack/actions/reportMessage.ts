@@ -6,6 +6,7 @@
 import { createModuleLogger } from '../../utils/logger';
 import { createIncidentModal } from '../views/incidentModal';
 import { handleError } from '../../utils/errorHandler';
+import { getTeams } from '../../notion/getTeams';
 
 const logger = createModuleLogger('report-message-action');
 
@@ -47,6 +48,10 @@ export async function handleReportMessage({
       sourceThreadTs: threadTs,
     });
 
+    // Fetch teams from Notion (if configured)
+    const teams = await getTeams();
+    logger.info('Teams fetched for modal', { teamsCount: teams.length });
+
     // Open the modal with message text pre-filled
     await client.views.open({
       trigger_id: body.trigger_id,
@@ -54,6 +59,7 @@ export async function handleReportMessage({
         initialTitle: messageText.substring(0, 200), // Respect title max length
         initialDescription: messageText,
         privateMetadata,
+        teams,
       }),
     });
 

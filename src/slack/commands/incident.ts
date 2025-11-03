@@ -7,6 +7,7 @@ import { SlackCommandMiddlewareArgs, AllMiddlewareArgs } from '@slack/bolt';
 import { createModuleLogger } from '../../utils/logger';
 import { createIncidentModal } from '../views/incidentModal';
 import { handleError } from '../../utils/errorHandler';
+import { getTeams } from '../../notion/getTeams';
 
 const logger = createModuleLogger('incident-command');
 
@@ -32,11 +33,16 @@ export async function handleIncidentCommand({
       commandText,
     });
 
-    // Open the modal with optional initial title from command text
+    // Fetch teams from Notion (if configured)
+    const teams = await getTeams();
+    logger.info('Teams fetched for modal', { teamsCount: teams.length });
+
+    // Open the modal with optional initial title from command text and teams
     await client.views.open({
       trigger_id: command.trigger_id,
       view: createIncidentModal({
         initialTitle: commandText || undefined,
+        teams,
       }),
     });
 

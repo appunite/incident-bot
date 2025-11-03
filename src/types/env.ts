@@ -11,6 +11,7 @@ export interface EnvConfig {
   // Notion
   NOTION_TOKEN: string;
   NOTION_DB_ID: string;
+  NOTION_TEAMS_DB_ID?: string;
 
   // Server
   PORT: number;

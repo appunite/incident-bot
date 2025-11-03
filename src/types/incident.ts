@@ -23,6 +23,7 @@ export interface IncidentFormData {
   dueDate?: string; // ISO date string (YYYY-MM-DD)
   happenedDate?: string; // ISO date string (YYYY-MM-DD)
   whyItMatters?: string; // Why this incident matters (stored in page body)
+  teamIds?: string[]; // Array of Notion page IDs for Team relation
 }
 
 export interface NotionIncidentProperties {
