@@ -39,6 +39,7 @@ export async function handleIncidentSubmission({
     const area = values.area_block?.area_input?.selected_option?.value as IncidentFormData['area'];
     const happenedDate = values.happened_date_block?.happened_date_input?.selected_date || undefined;
     const dueDate = values.due_date_block?.due_date_input?.selected_date || undefined;
+    const whyItMatters = values.why_it_matters_block?.why_it_matters_input?.value || undefined;
 
     // Get user info
     const userInfo = await client.users.info({ user: body.user.id });
@@ -95,6 +96,7 @@ export async function handleIncidentSubmission({
       reporterNotionId,
       happenedDate,
       dueDate,
+      whyItMatters,
     };
 
     // Create incident in Notion

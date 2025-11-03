@@ -241,6 +241,25 @@ export function createIncidentModal(options?: IncidentModalOptions): View {
           },
         },
       },
+      {
+        type: 'input',
+        block_id: 'why_it_matters_block',
+        optional: true,
+        label: {
+          type: 'plain_text',
+          text: 'Why It Matters',
+        },
+        element: {
+          type: 'plain_text_input',
+          action_id: 'why_it_matters_input',
+          multiline: true,
+          placeholder: {
+            type: 'plain_text',
+            text: 'Explain why this incident is important and what impact it has',
+          },
+          max_length: 1000,
+        },
+      },
     ],
   };
 }

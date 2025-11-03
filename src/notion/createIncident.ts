@@ -124,6 +124,7 @@ export async function createIncident(
       // Add structured page content using template
       children: buildIncidentPageBlocks({
         description: data.description,
+        whyItMatters: data.whyItMatters,
       }),
     });
 

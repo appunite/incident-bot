@@ -8,6 +8,7 @@ import { BlockObjectRequest } from '@notionhq/client/build/src/api-endpoints';
 interface TemplateData {
   description: string;
   slackThreadUrl?: string;
+  whyItMatters?: string;
 }
 
 /**
@@ -93,11 +94,14 @@ export function buildIncidentPageBlocks(data: TemplateData): BlockObjectRequest[
     },
   });
 
+  // Add the "Why It Matters" content if provided
   blocks.push({
     object: 'block',
     type: 'paragraph',
     paragraph: {
-      rich_text: [],
+      rich_text: data.whyItMatters
+        ? [{ type: 'text', text: { content: data.whyItMatters } }]
+        : [],
     },
   });
 
