@@ -9,11 +9,15 @@ import { slackApp, expressApp } from './slack/client';
 import { notionClient } from './notion/client';
 import { handleIncidentCommand } from './slack/commands/incident';
 import { handleIncidentSubmission } from './slack/handlers/incidentSubmission';
+import { handleReportMessage } from './slack/actions/reportMessage';
 
 const startupLogger = logger.child({ module: 'startup' });
 
 // Register Slack command handlers
 slackApp.command('/incident', handleIncidentCommand);
+
+// Register message action handlers
+slackApp.action('report_as_incident', handleReportMessage);
 
 // Register view submission handlers
 slackApp.view('incident_modal', handleIncidentSubmission);

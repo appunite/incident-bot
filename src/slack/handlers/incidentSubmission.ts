@@ -49,8 +49,25 @@ export async function handleIncidentSubmission({
       reporterNotionId = await findNotionUserByEmail(userEmail);
     }
 
-    // Get channel info - use the channel where the command was invoked
-    const channelId = body.view.private_metadata || body.user.id;
+    // Parse private_metadata to check if this is from a message action
+    let messageActionContext: {
+      sourceChannelId?: string;
+      sourceMessageTs?: string;
+      sourceThreadTs?: string;
+    } = {};
+
+    try {
+      if (view.private_metadata) {
+        messageActionContext = JSON.parse(view.private_metadata);
+      }
+    } catch (error) {
+      // If parsing fails, treat it as a regular command (not from message action)
+      logger.warn('Failed to parse private_metadata', { error });
+    }
+
+    // Determine channel ID - use source channel from message action if available
+    const channelId = messageActionContext.sourceChannelId || view.private_metadata || body.user.id;
+    const isFromMessageAction = !!messageActionContext.sourceChannelId;
 
     logger.info('Form data extracted', {
       title,
@@ -59,6 +76,8 @@ export async function handleIncidentSubmission({
       userName,
       userEmail,
       reporterNotionId,
+      isFromMessageAction,
+      sourceChannel: messageActionContext.sourceChannelId,
     });
 
     // Prepare incident data
@@ -78,18 +97,53 @@ export async function handleIncidentSubmission({
     logger.info('Creating incident in Notion');
     const notionResult = await createIncident(incidentData);
 
-    // Post confirmation message to Slack channel
-    logger.info('Posting confirmation to Slack', { channelId });
+    // Post confirmation message to Slack
+    logger.info('Posting confirmation to Slack', {
+      channelId,
+      isFromMessageAction,
+    });
+
     const confirmationMsg = createConfirmationMessage({
       incidentData,
       notionPageUrl: notionResult.url,
       notionPageId: notionResult.id,
     });
 
-    const slackMessage = await slackApp.client.chat.postMessage({
-      channel: channelId,
-      ...confirmationMsg,
-    });
+    let slackMessage;
+
+    if (isFromMessageAction) {
+      // Option B: Post public reply in thread + ephemeral DM to user
+
+      // Post public reply in the original message's thread
+      slackMessage = await slackApp.client.chat.postMessage({
+        channel: channelId,
+        thread_ts: messageActionContext.sourceThreadTs, // Reply in thread
+        ...confirmationMsg,
+      });
+
+      logger.info('Posted public thread reply', {
+        channel: channelId,
+        threadTs: messageActionContext.sourceThreadTs,
+        messageTs: slackMessage.ts,
+      });
+
+      // Also send ephemeral message to the user
+      await slackApp.client.chat.postEphemeral({
+        channel: channelId,
+        user: body.user.id,
+        text: `✅ Incident reported successfully! View in Notion: ${notionResult.url}`,
+      });
+
+      logger.info('Posted ephemeral confirmation to user', {
+        userId: body.user.id,
+      });
+    } else {
+      // Regular behavior: post to channel/DM
+      slackMessage = await slackApp.client.chat.postMessage({
+        channel: channelId,
+        ...confirmationMsg,
+      });
+    }
 
     // Update Notion with Slack thread URL
     if (slackMessage.ts && slackMessage.channel) {
@@ -108,6 +162,7 @@ export async function handleIncidentSubmission({
     logger.info('Incident created successfully', {
       notionPageId: notionResult.id,
       slackMessageTs: slackMessage.ts,
+      isFromMessageAction,
     });
 
   } catch (error) {

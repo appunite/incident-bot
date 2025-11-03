@@ -7,12 +7,16 @@ import { View } from '@slack/bolt';
 
 interface IncidentModalOptions {
   initialTitle?: string;
+  initialDescription?: string;
+  privateMetadata?: string;
 }
 
 /**
  * Creates the incident creation modal view
  * @param options - Optional configuration for the modal
  * @param options.initialTitle - Optional initial value for the title field
+ * @param options.initialDescription - Optional initial value for the description field
+ * @param options.privateMetadata - Optional metadata to pass through the modal
  */
 export function createIncidentModal(options?: IncidentModalOptions): View {
   const titleElement: any = {
@@ -30,9 +34,26 @@ export function createIncidentModal(options?: IncidentModalOptions): View {
     titleElement.initial_value = options.initialTitle;
   }
 
+  const descriptionElement: any = {
+    type: 'plain_text_input',
+    action_id: 'description_input',
+    multiline: true,
+    placeholder: {
+      type: 'plain_text',
+      text: 'Detailed description of what happened, impact, and any relevant context',
+    },
+    max_length: 3000,
+  };
+
+  // Add initial_value if provided
+  if (options?.initialDescription) {
+    descriptionElement.initial_value = options.initialDescription;
+  }
+
   return {
     type: 'modal',
     callback_id: 'incident_modal',
+    private_metadata: options?.privateMetadata || '',
     title: {
       type: 'plain_text',
       text: 'Report Incident',
@@ -62,16 +83,7 @@ export function createIncidentModal(options?: IncidentModalOptions): View {
           type: 'plain_text',
           text: 'Description',
         },
-        element: {
-          type: 'plain_text_input',
-          action_id: 'description_input',
-          multiline: true,
-          placeholder: {
-            type: 'plain_text',
-            text: 'Detailed description of what happened, impact, and any relevant context',
-          },
-          max_length: 3000,
-        },
+        element: descriptionElement,
       },
       {
         type: 'input',
