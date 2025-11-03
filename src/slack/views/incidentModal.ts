@@ -198,6 +198,40 @@ export function createIncidentModal(options?: IncidentModalOptions): View {
           ],
         },
       },
+      {
+        type: 'input',
+        block_id: 'happened_date_block',
+        optional: true,
+        label: {
+          type: 'plain_text',
+          text: 'Happened Date',
+        },
+        element: {
+          type: 'datepicker',
+          action_id: 'happened_date_input',
+          placeholder: {
+            type: 'plain_text',
+            text: 'When did this incident occur?',
+          },
+        },
+      },
+      {
+        type: 'input',
+        block_id: 'due_date_block',
+        optional: true,
+        label: {
+          type: 'plain_text',
+          text: 'Due Date',
+        },
+        element: {
+          type: 'datepicker',
+          action_id: 'due_date_input',
+          placeholder: {
+            type: 'plain_text',
+            text: 'When should this be resolved by?',
+          },
+        },
+      },
     ],
   };
 }

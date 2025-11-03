@@ -98,6 +98,24 @@ export async function createIncident(
       };
     }
 
+    // Add Happened Date if provided
+    if (data.happenedDate) {
+      properties['Happened Date'] = {
+        date: {
+          start: data.happenedDate, // Already in YYYY-MM-DD format from datepicker
+        },
+      };
+    }
+
+    // Add Due Date if provided
+    if (data.dueDate) {
+      properties['Due Date'] = {
+        date: {
+          start: data.dueDate, // Already in YYYY-MM-DD format from datepicker
+        },
+      };
+    }
+
     const response = await notionClient.pages.create({
       parent: {
         database_id: INCIDENTS_DB_ID,

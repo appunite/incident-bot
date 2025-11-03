@@ -20,6 +20,8 @@ export interface IncidentFormData {
   slackChannelId: string;
   slackChannelName: string;
   reporterNotionId?: string; // Notion user ID for Reporter field
+  dueDate?: string; // ISO date string (YYYY-MM-DD)
+  happenedDate?: string; // ISO date string (YYYY-MM-DD)
 }
 
 export interface NotionIncidentProperties {

@@ -37,6 +37,8 @@ export async function handleIncidentSubmission({
     const description = values.description_block?.description_input?.value || '';
     const severity = values.severity_block?.severity_input?.selected_option?.value as IncidentFormData['severity'];
     const area = values.area_block?.area_input?.selected_option?.value as IncidentFormData['area'];
+    const happenedDate = values.happened_date_block?.happened_date_input?.selected_date || undefined;
+    const dueDate = values.due_date_block?.due_date_input?.selected_date || undefined;
 
     // Get user info
     const userInfo = await client.users.info({ user: body.user.id });
@@ -91,6 +93,8 @@ export async function handleIncidentSubmission({
       slackChannelId: channelId,
       slackChannelName: 'DM',
       reporterNotionId,
+      happenedDate,
+      dueDate,
     };
 
     // Create incident in Notion
