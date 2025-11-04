@@ -122,6 +122,18 @@ export async function createIncident(
       };
     }
 
+    if (data.slackChannelId) {
+      properties['Slack Channel ID'] = {
+        rich_text: [
+          {
+            text: {
+              content: data.slackChannelId,
+            },
+          },
+        ],
+      };
+    }
+
     const response = await notionClient.pages.create({
       parent: {
         database_id: INCIDENTS_DB_ID,
