@@ -9,8 +9,7 @@
     "start": "node dist/index.js",
     "lint": "eslint src --ext .ts",
     "test": "echo \"No tests yet\" && exit 0",
-    "vercel-build": "npm run build",
-    "postinstall": "npm run build"
+    "vercel-build": "npm run build"
   },
   "keywords": [
     "slack",
