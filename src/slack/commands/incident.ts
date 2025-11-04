@@ -8,6 +8,7 @@ import { createModuleLogger } from '../../utils/logger';
 import { createIncidentModal } from '../views/incidentModal';
 import { handleError } from '../../utils/errorHandler';
 import { getCachedTeams } from '../../notion/teamsCache';
+import { getTeams } from '../../notion/getTeams';
 
 const logger = createModuleLogger('incident-command');
 
@@ -20,19 +21,20 @@ export async function handleIncidentCommand({
   ack,
   client,
 }: SlackCommandMiddlewareArgs & AllMiddlewareArgs): Promise<void> {
-  logger.info('/incident command received', {
-    userId: command.user_id,
-    channelId: command.channel_id,
-  });
-
   try {
-    // Acknowledge the command request immediately
+    // Acknowledge IMMEDIATELY - must be within 3 seconds
     await ack();
+
+    logger.info('/incident command received', {
+      userId: command.user_id,
+      channelId: command.channel_id,
+    });
 
     // Extract text from command (everything after /incident)
     const commandText = command.text?.trim() || '';
 
-    // Get teams from cache (instant, no API call)
+    // Get teams - synchronously from cache (instant)
+    // In serverless, cache may be empty - that's okay, modal will work without teams
     const teams = getCachedTeams();
 
     const modalView = createIncidentModal({
