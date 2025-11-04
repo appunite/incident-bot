@@ -49,24 +49,15 @@ export async function handleIncidentSubmission({
     const userName = userInfo.user?.real_name || userInfo.user?.name || 'Unknown';
     const userEmail = userInfo.user?.profile?.email;
 
-    // Find Notion user by email for Reporter field
-    let reporterNotionId: string | undefined;
-    if (userEmail) {
-      reporterNotionId = await findNotionUserByEmail(userEmail);
-    }
+    // Skip reporter lookup in serverless to avoid timeout
+    // Can be added back if Vercel Pro tier is used (30s timeout instead of 10s)
+    const reporterNotionId: string | undefined = undefined;
 
-    // Fallback: Try to match by name if email lookup failed
-    if (!reporterNotionId && userName) {
-      reporterNotionId = await findNotionUserByName(userName);
-    }
-
-    if (!reporterNotionId) {
-      logger.warn('Could not find Notion user for Reporter assignment', {
-        userId: body.user.id,
-        userName,
-        userEmail,
-      });
-    }
+    logger.info('Reporter lookup skipped for performance (serverless)', {
+      userId: body.user.id,
+      userName,
+      userEmail,
+    });
 
     // Parse private_metadata to check if this is from a message action
     let messageActionContext: {

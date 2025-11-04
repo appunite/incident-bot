@@ -11,6 +11,8 @@ const notionLogger = logger.child({ module: 'notion' });
 // Initialize Notion client
 export const notionClient = new Client({
   auth: env.NOTION_TOKEN,
+  // Note: Default timeout is 60s, which is fine
+  // The real limit is Vercel's 10s function timeout
 });
 
 notionLogger.info('Notion client initialized');
