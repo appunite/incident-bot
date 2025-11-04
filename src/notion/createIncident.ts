@@ -134,19 +134,45 @@ export async function createIncident(
       };
     }
 
-    // Create page WITHOUT thread messages first (fast, critical path)
+    // Create page with ONLY properties (no blocks) - super fast, critical path
+    logger.info('About to call Notion API pages.create (properties only)', {
+      databaseId: INCIDENTS_DB_ID,
+      title: data.title,
+    });
+
     const response = await notionClient.pages.create({
       parent: {
         database_id: INCIDENTS_DB_ID,
       },
       properties,
-      // Add structured page content WITHOUT thread messages
-      children: buildIncidentPageBlocks({
+      // NO children - page content will be added separately to avoid timeout
+    });
+
+    logger.info('Notion API pages.create returned successfully', {
+      responseId: response.id,
+    });
+
+    // Append template blocks separately (non-blocking, page already exists)
+    logger.info('Appending template blocks to page');
+    try {
+      const templateBlocks = buildIncidentPageBlocks({
         description: data.description,
         whyItMatters: data.whyItMatters,
-        // Thread messages will be added separately to avoid timeout
-      }),
-    });
+      });
+
+      await notionClient.blocks.children.append({
+        block_id: response.id,
+        children: templateBlocks,
+      });
+
+      logger.info('Template blocks appended successfully');
+    } catch (templateError) {
+      logger.error('Failed to append template blocks (non-critical)', {
+        error: templateError,
+        pageId: response.id,
+      });
+      // Don't throw - page was already created successfully
+    }
 
     // Construct Notion page URL
     const pageUrl = `https://notion.so/${response.id.replace(/-/g, '')}`;
