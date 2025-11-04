@@ -1,5 +1,4 @@
 node_modules
-src
 .env
 .env.local
 .env.example
@@ -7,7 +6,6 @@ src
 .gitignore
 *.md
 !README.md
-tsconfig.json
 .eslintrc.js
 nodemon.json
 docs
