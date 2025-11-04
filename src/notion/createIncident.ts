@@ -135,16 +135,17 @@ export async function createIncident(
       };
     }
 
+    // Create page WITHOUT thread messages first (fast, critical path)
     const response = await notionClient.pages.create({
       parent: {
         database_id: INCIDENTS_DB_ID,
       },
       properties,
-      // Add structured page content using template
+      // Add structured page content WITHOUT thread messages
       children: buildIncidentPageBlocks({
         description: data.description,
         whyItMatters: data.whyItMatters,
-        threadMessages,
+        // Thread messages will be added separately to avoid timeout
       }),
     });
 

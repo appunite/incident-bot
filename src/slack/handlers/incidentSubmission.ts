@@ -10,6 +10,7 @@ import { slackApp } from '../client';
 import { createConfirmationMessage } from '../messages/confirmationMessage';
 import { updateIncidentWithSlackThread } from '../../notion/updateIncident';
 import { fetchThreadMessages } from '../fetchThreadMessages';
+import { appendThreadMessages } from '../../notion/appendThreadMessages';
 
 const logger = createModuleLogger('incident-submission');
 
@@ -199,10 +200,16 @@ export async function handleIncidentSubmission({
       });
     }
 
+    // Append thread messages separately (non-blocking, won't fail incident creation)
+    if (threadMessages && threadMessages.length > 0) {
+      await appendThreadMessages(notionResult.id, threadMessages);
+    }
+
     logger.info('Incident created successfully', {
       notionPageId: notionResult.id,
       slackMessageTs: slackMessage.ts,
       isFromMessageAction,
+      hasThreadMessages: !!threadMessages && threadMessages.length > 0,
     });
 
   } catch (error) {
