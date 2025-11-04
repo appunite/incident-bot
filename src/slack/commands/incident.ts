@@ -21,7 +21,6 @@ export async function handleIncidentCommand({
   client,
 }: SlackCommandMiddlewareArgs & AllMiddlewareArgs): Promise<void> {
   try {
-    // Acknowledge IMMEDIATELY - must be within 3 seconds
     await ack();
 
     logger.info('/incident command received', {
@@ -29,11 +28,7 @@ export async function handleIncidentCommand({
       channelId: command.channel_id,
     });
 
-    // Extract text from command (everything after /incident)
     const commandText = command.text?.trim() || '';
-
-    // Get teams - synchronously from cache (instant)
-    // In serverless, cache may be empty - that's okay, modal will work without teams
     const teams = getCachedTeams();
 
     const modalView = createIncidentModal({
@@ -58,7 +53,6 @@ export async function handleIncidentCommand({
 
     const errorMessage = handleError(error, 'incident command');
 
-    // Try to send error message to user
     try {
       await client.chat.postEphemeral({
         channel: command.channel_id,

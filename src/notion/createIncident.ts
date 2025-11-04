@@ -32,7 +32,6 @@ export async function createIncident(
     });
 
     const properties: any = {
-      // Title property (title type)
       Title: {
         title: [
           {
@@ -42,47 +41,40 @@ export async function createIncident(
           },
         ],
       },
-      // Description (text type) - keeping as property for quick reference/filtering
       Description: {
         rich_text: [
           {
             text: {
-              content: data.description.substring(0, 2000), // Truncate to first 2000 chars for property
+              content: data.description.substring(0, 2000),
             },
           },
         ],
       },
-      // Status (status type) - Notion's built-in status property
       Status: {
         status: {
           name: 'Open',
         },
       },
-      // Severity (select type)
       Severity: {
         select: {
           name: data.severity,
         },
       },
-      // Area (select type)
       Area: {
         select: {
           name: data.area,
         },
       },
-      // Detected Date (date type) - when incident was detected/reported
       'Detected Date': {
         date: {
           start: new Date().toISOString(),
         },
       },
-      // Created From (select type) - origin of the incident record
       'Created From': {
         select: {
           name: 'Automatic',
         },
       },
-      // Trigger (text type) - how this incident was triggered
       Trigger: {
         rich_text: [
           {
@@ -94,69 +86,53 @@ export async function createIncident(
       },
     };
 
-    // Add Reporter field if Notion user was found
     if (data.reporterNotionId) {
       properties.Reporter = {
         people: [{ id: data.reporterNotionId }],
       };
     }
 
-    // Add Happened Date if provided
     if (data.happenedDate) {
       properties['Happened Date'] = {
         date: {
-          start: data.happenedDate, // Already in YYYY-MM-DD format from datepicker
+          start: data.happenedDate,
         },
       };
     }
 
-    // Add Discover Date if provided
     if (data.discoverDate) {
       properties['Discover Date'] = {
         date: {
-          start: data.discoverDate, // Already in YYYY-MM-DD format from datepicker
+          start: data.discoverDate,
         },
       };
     }
 
-    // Add Due Date if provided
     if (data.dueDate) {
       properties['Due Date'] = {
         date: {
-          start: data.dueDate, // Already in YYYY-MM-DD format from datepicker
+          start: data.dueDate,
         },
       };
     }
 
-    // Add Teams relation if provided
     if (data.teamIds && data.teamIds.length > 0) {
       properties.Teams = {
         relation: data.teamIds.map((id) => ({ id })),
       };
     }
 
-    // Create page with ONLY properties (no blocks) - super fast, critical path
-    logger.info('About to call Notion API pages.create (properties only)', {
-      databaseId: INCIDENTS_DB_ID,
-      title: data.title,
-    });
-
     const response = await notionClient.pages.create({
       parent: {
         database_id: INCIDENTS_DB_ID,
       },
       properties,
-      // NO children - page content will be added separately to avoid timeout
     });
 
-    logger.info('Notion API pages.create returned successfully', {
-      responseId: response.id,
+    logger.info('Notion page created successfully', {
+      pageId: response.id,
     });
 
-    // Append ALL blocks (template + thread messages) in ONE request - reduces API calls
-    logger.info('Appending page content (template + thread messages)', {
-      hasThreadMessages: !!threadMessages && threadMessages.length > 0,
-    });
     try {
       const templateBlocks = buildIncidentPageBlocks({
         description: data.description,
@@ -169,18 +145,16 @@ export async function createIncident(
         children: templateBlocks,
       });
 
-      logger.info('Page content appended successfully', {
+      logger.info('Page content appended', {
         blockCount: templateBlocks.length,
       });
     } catch (appendError) {
-      logger.error('Failed to append page content (non-critical)', {
+      logger.error('Failed to append page content', {
         error: appendError,
         pageId: response.id,
       });
-      // Don't throw - page was already created successfully
     }
 
-    // Construct Notion page URL
     const pageUrl = `https://notion.so/${response.id.replace(/-/g, '')}`;
 
     logger.info('Incident created successfully in Notion', {
