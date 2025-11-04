@@ -87,9 +87,9 @@ export async function handleIncidentSubmission({
     }
 
     const isFromMessageAction = !!messageActionContext.sourceChannelId;
-    const sourceIsChannel = messageActionContext.sourceChannelId && messageActionContext.sourceChannelId.startsWith('C');
+    const sourceIsChannel = messageActionContext.sourceChannelId?.startsWith('C') || false;
 
-    const channelId = sourceIsChannel
+    const channelId: string = sourceIsChannel && messageActionContext.sourceChannelId
       ? messageActionContext.sourceChannelId
       : body.user.id;
 
