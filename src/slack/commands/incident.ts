@@ -8,7 +8,6 @@ import { createModuleLogger } from '../../utils/logger';
 import { createIncidentModal } from '../views/incidentModal';
 import { handleError } from '../../utils/errorHandler';
 import { getCachedTeams } from '../../notion/teamsCache';
-import { getTeams } from '../../notion/getTeams';
 
 const logger = createModuleLogger('incident-command');
 
