@@ -17,7 +17,7 @@ Enable users to create incidents directly from Slack via `/incident`, automatica
 - Slack Bolt SDK
 - Notion API
 - Express server
-- Deployed via Vercel / Render
+- Deployed on Railway (see [DEPLOYMENT.md](docs/DEPLOYMENT.md))
 
 ## 📂 Structure
 - `src/slack/` → Slack handlers (commands, modals, events)
