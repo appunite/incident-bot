@@ -9,7 +9,6 @@ import { IncidentFormData, ThreadMessage } from '../../types/incident';
 import { slackApp } from '../client';
 import { createConfirmationMessage } from '../messages/confirmationMessage';
 import { updateIncidentWithSlackThread } from '../../notion/updateIncident';
-import { findNotionUserByEmail, findNotionUserByName } from '../../notion/findUser';
 import { fetchThreadMessages } from '../fetchThreadMessages';
 
 const logger = createModuleLogger('incident-submission');
