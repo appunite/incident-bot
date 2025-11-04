@@ -107,6 +107,15 @@ export async function createIncident(
       };
     }
 
+    // Add Discover Date if provided
+    if (data.discoverDate) {
+      properties['Discover Date'] = {
+        date: {
+          start: data.discoverDate, // Already in YYYY-MM-DD format from datepicker
+        },
+      };
+    }
+
     // Add Due Date if provided
     if (data.dueDate) {
       properties['Due Date'] = {

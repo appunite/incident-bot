@@ -54,6 +54,9 @@ Below are all properties defined in the Incidents data source, with types, allow
 - **Happened Date**
     - Type: Date
     - Usage: When the incident actually occurred.
+- **Discover Date**
+    - Type: Date
+    - Usage: When the incident was discovered or first noticed.
 - **Detected Date**
     - Type: Date
     - Usage: When it was first detected or acknowledged.

@@ -22,6 +22,7 @@ export interface IncidentFormData {
   reporterNotionId?: string; // Notion user ID for Reporter field
   dueDate?: string; // ISO date string (YYYY-MM-DD)
   happenedDate?: string; // ISO date string (YYYY-MM-DD)
+  discoverDate?: string; // ISO date string (YYYY-MM-DD)
   whyItMatters?: string; // Why this incident matters (stored in page body)
   teamIds?: string[]; // Array of Notion page IDs for Team relation
 }

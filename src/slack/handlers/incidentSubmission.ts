@@ -38,6 +38,7 @@ export async function handleIncidentSubmission({
     const severity = values.severity_block?.severity_input?.selected_option?.value as IncidentFormData['severity'];
     const area = values.area_block?.area_input?.selected_option?.value as IncidentFormData['area'];
     const happenedDate = values.happened_date_block?.happened_date_input?.selected_date || undefined;
+    const discoverDate = values.discover_date_block?.discover_date_input?.selected_date || undefined;
     const dueDate = values.due_date_block?.due_date_input?.selected_date || undefined;
     const whyItMatters = values.why_it_matters_block?.why_it_matters_input?.value || undefined;
     const teamIds = values.team_block?.team_input?.selected_options?.map((opt: any) => opt.value) || undefined;
@@ -98,6 +99,7 @@ export async function handleIncidentSubmission({
       slackChannelName: 'DM',
       reporterNotionId,
       happenedDate,
+      discoverDate,
       dueDate,
       whyItMatters,
       teamIds,

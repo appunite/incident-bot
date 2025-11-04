@@ -229,6 +229,24 @@ export function createIncidentModal(options?: IncidentModalOptions): View {
       },
       {
         type: 'input',
+        block_id: 'discover_date_block',
+        optional: true,
+        label: {
+          type: 'plain_text',
+          text: 'Discover Date',
+        },
+        element: {
+          type: 'datepicker',
+          action_id: 'discover_date_input',
+          initial_date: new Date().toISOString().split('T')[0], // Today's date in YYYY-MM-DD format
+          placeholder: {
+            type: 'plain_text',
+            text: 'When was this incident discovered?',
+          },
+        },
+      },
+      {
+        type: 'input',
         block_id: 'due_date_block',
         optional: true,
         label: {

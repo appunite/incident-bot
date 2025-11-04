@@ -53,6 +53,7 @@ This is the primary way to report a new incident in Slack.
    **Optional Fields:**
 
    - **Happened Date** - When the incident actually occurred
+   - **Discover Date** - When the incident was discovered or first noticed (defaults to today)
    - **Due Date** - Target resolution or next action checkpoint
    - **Why It Matters** (max 1000 characters) - Business impact and importance
    - **Team** - Select one or more teams involved or affected
@@ -176,6 +177,7 @@ The Incidents database includes several pre-configured views:
 **Tracking Fields:**
 
 - **Happened Date** - When the incident actually occurred
+- **Discover Date** - When the incident was discovered or first noticed
 - **Detected Date** - When it was first detected or acknowledged (auto-set)
 - **Due Date** - Target resolution or next action checkpoint
 - **Created From** - Origin of the record (Manual, Automatic, Email, API, Phone)
