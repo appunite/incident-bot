@@ -20,8 +20,6 @@ export function createConfirmationMessage({
   notionPageId,
 }: ConfirmationMessageOptions) {
   const severityEmojiMap: Record<IncidentSeverity, string> = {
-    '🔥 Critical': '🔥',
-    '🔥 High': '🔥',
     'ASAP': '⚡',
     'High': '🟠',
     'Normal': '🟡',
