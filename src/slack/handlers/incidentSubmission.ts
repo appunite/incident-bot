@@ -9,6 +9,7 @@ import { IncidentFormData, ThreadMessage } from '../../types/incident';
 import { slackApp } from '../client';
 import { createConfirmationMessage } from '../messages/confirmationMessage';
 import { fetchThreadMessages } from '../fetchThreadMessages';
+import { findNotionUserByEmail, findNotionUserByName } from '../../notion/findUser';
 
 const logger = createModuleLogger('incident-submission');
 
@@ -47,15 +48,32 @@ export async function handleIncidentSubmission({
     const userName = userInfo.user?.real_name || userInfo.user?.name || 'Unknown';
     const userEmail = userInfo.user?.profile?.email;
 
-    // Skip reporter lookup in serverless to avoid timeout
-    // Can be added back if Vercel Pro tier is used (30s timeout instead of 10s)
-    const reporterNotionId: string | undefined = undefined;
+    // Find reporter in Notion (Railway has no timeout limits)
+    let reporterNotionId: string | undefined;
 
-    logger.info('Reporter lookup skipped for performance (serverless)', {
-      userId: body.user.id,
-      userName,
-      userEmail,
-    });
+    if (userEmail) {
+      logger.info('Looking up Notion user by email', { userEmail });
+      reporterNotionId = await findNotionUserByEmail(userEmail);
+    }
+
+    if (!reporterNotionId && userName) {
+      logger.info('Email lookup failed, trying by name', { userName });
+      reporterNotionId = await findNotionUserByName(userName);
+    }
+
+    if (reporterNotionId) {
+      logger.info('Found reporter in Notion', {
+        reporterNotionId,
+        userId: body.user.id,
+        userName,
+      });
+    } else {
+      logger.warn('Could not find reporter in Notion', {
+        userId: body.user.id,
+        userName,
+        userEmail,
+      });
+    }
 
     // Parse private_metadata to check if this is from a message action
     let messageActionContext: {
@@ -91,7 +109,7 @@ export async function handleIncidentSubmission({
           client,
           messageActionContext.sourceChannelId,
           messageActionContext.sourceThreadTs,
-          10  // Limit to 10 messages for Vercel Pro 30s timeout
+          30  // Railway has no timeout limits, can fetch full thread context
         );
 
         if (threadResult && threadResult.messages.length > 0) {
