@@ -30,6 +30,19 @@ initializeTeamsCache().catch((error) => {
   startupLogger.warn('Teams cache initialization failed (expected in serverless):', error);
 });
 
+// Debug middleware to log ALL requests
+expressApp.use((req, res, next) => {
+  logger.info('🔍 Incoming request', {
+    method: req.method,
+    url: req.url,
+    path: req.path,
+    originalUrl: req.originalUrl,
+    headers: Object.keys(req.headers),
+    hasSlackSignature: !!req.headers['x-slack-signature'],
+  });
+  next();
+});
+
 /**
  * Health check endpoint
  */
