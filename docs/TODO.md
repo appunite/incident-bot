@@ -482,3 +482,138 @@ Ready to start Sprint 0? =�
 - Added "Description" heading in page content
 - Property description truncated to 2000 chars for quick reference
 - Fixed Slack thread URL to use app_redirect (no team:read scope needed)
+
+---
+
+## 🔧 Sprint 1.6: Enhancements & Bug Fixes
+
+### Teams Integration
+- [x] **Fix expired_trigger_id error** `@dev`
+  - Issue: API calls during modal creation caused trigger_id expiration
+  - Solution: Implemented teams cache with periodic refresh
+  - File: `src/notion/teamsCache.ts`
+  - Cache refreshed every 5 minutes, instant access during command
+  - Status: ✅ Fixed (2025-11-03)
+
+### Reporter Assignment
+- [x] **Add Reporter field population** `@dev`
+  - Match Slack user to Notion user by email
+  - File: `src/notion/findUser.ts`
+  - Uses `users:read.email` scope
+  - Fallback to name matching if email not found
+  - Status: ✅ Complete (2025-11-03)
+
+- [x] **Add pagination support for Notion users** `@dev`
+  - Fixed issue with workspaces having 100+ users
+  - Both `findNotionUserByEmail` and `findNotionUserByName` now paginate
+  - Searches all users, not just first 100
+  - Status: ✅ Complete (2025-11-04)
+
+### Field Updates
+- [x] **Add Discover Date field** `@prabel` + `@dev`
+  - New date field in Notion: when incident was discovered
+  - Added to modal as optional field with today as default
+  - Updated all documentation
+  - Status: ✅ Complete (2025-11-04)
+
+- [x] **Update Severity field options** `@prabel` + `@dev`
+  - Reduced from 6 to 4 options: ASAP, High, Normal, Low
+  - Removed: 🔥 Critical, 🔥 High
+  - Updated modal, confirmation messages, and documentation
+  - Status: ✅ Complete (2025-11-04)
+
+### Documentation
+- [x] **Create comprehensive user guide** `@dev`
+  - File: `docs/USER_GUIDE.md` (493 lines)
+  - How to report incidents (two methods)
+  - How to manage incidents in Notion
+  - Best practices and FAQ
+  - Status: ✅ Complete (2025-11-04)
+
+**Sprint 1.6 Status: ✅ COMPLETE (2025-11-04)**
+
+---
+
+## 💬 Sprint 1.7: Thread Messages Integration
+
+### Thread Context Capture
+- [x] **Add thread messages integration** `@dev`
+  - Fetch all thread replies when incident created from threaded message
+  - File: `src/slack/fetchThreadMessages.ts`
+  - Uses `conversations.replies` API
+  - Fetches up to 30 thread messages
+  - Resolves user display names with caching
+  - Status: ✅ Complete (2025-11-04)
+
+- [x] **Update incident submission handler** `@dev`
+  - Detects if incident created from thread
+  - Fetches thread messages if available
+  - Passes to Notion page creation
+  - Graceful degradation if fetch fails
+  - Status: ✅ Complete (2025-11-04)
+
+- [x] **Add toggle block to Notion page template** `@dev`
+  - Thread messages display in collapsible toggle
+  - Format: "💬 Thread Context (N messages)"
+  - Shows user name, timestamp, and message text
+  - Only appears when thread messages exist
+  - Status: ✅ Complete (2025-11-04)
+
+### Slack Scopes
+- [x] **Add required scopes** `@prabel`
+  - `channels:history` - Access public channel history
+  - `groups:history` - Access private channel history
+  - Required for fetching thread messages
+  - Status: ✅ Complete (2025-11-04)
+
+### Documentation
+- [x] **Update documentation for thread context** `@dev`
+  - Updated `docs/SLACK_SCOPES_SETUP.md` with thread scopes
+  - Updated `docs/USER_GUIDE.md` with thread context info
+  - Created `docs/THREAD_MESSAGES_INTEGRATION.md` (1,120 lines)
+  - Complete technical design and implementation guide
+  - Status: ✅ Complete (2025-11-04)
+
+**Sprint 1.7 Status: ✅ COMPLETE (2025-11-04)**
+- Thread messages automatically captured from threaded reports
+- Displayed in collapsible toggle block in Notion
+- Full context preservation for incident investigation
+- 8 files modified, 2 new files created (1,433+ lines)
+
+---
+
+## 🔍 Analysis: Slash Commands in Threads
+
+### Research Findings
+- [x] **Investigate `/incident` command in threads** `@dev`
+  - **Finding:** Slack API does not allow developer slash commands in threads
+  - **Limitation:** Only built-in Slack commands work in threads
+  - **Reason:** Architectural constraint, not a bug
+  - Documentation: `docs/THREAD_COMMAND_ANALYSIS.md`
+  - Status: ✅ Research Complete (2025-11-04)
+
+### Alternative Approaches Evaluated
+- [x] **Evaluate global shortcuts** `@dev`
+  - Pros: Discoverable, works anywhere
+  - Cons: No thread context capture
+  - Verdict: Not suitable for thread-based incidents
+
+- [x] **Evaluate message shortcuts (current approach)** `@dev`
+  - Pros: Full thread context, works perfectly
+  - Cons: Requires hovering over message
+  - Verdict: ✅ Best approach, only solution that captures thread context
+
+- [x] **Evaluate app mentions** `@dev`
+  - Pros: Conversational, works in threads
+  - Cons: Complex, requires extra API calls
+  - Verdict: Possible but unnecessary complexity
+
+### Recommendation
+- ✅ **Keep current approach** - Message shortcut is the correct solution
+- ⚠️ **Optional:** Add global shortcut for quick non-thread incidents
+- 📝 **Focus on:** Improve discoverability through documentation
+
+**Analysis Status: ✅ COMPLETE (2025-11-04)**
+- Current implementation is optimal for thread context
+- No code changes needed
+- Documented limitations and alternatives
