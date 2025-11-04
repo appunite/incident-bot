@@ -3,7 +3,7 @@
  */
 
 import { notionClient, INCIDENTS_DB_ID } from './client';
-import { IncidentFormData } from '../types/incident';
+import { IncidentFormData, ThreadMessage } from '../types/incident';
 import { createModuleLogger } from '../utils/logger';
 import { buildIncidentPageBlocks } from './pageTemplate';
 
@@ -18,10 +18,11 @@ interface CreateIncidentResult {
 /**
  * Creates a new incident page in Notion database
  * @param data - Incident form data from Slack
- * Note: Thread messages are now appended separately via appendThreadMessages()
+ * @param threadMessages - Optional thread messages to append
  */
 export async function createIncident(
-  data: IncidentFormData
+  data: IncidentFormData,
+  threadMessages?: ThreadMessage[]
 ): Promise<CreateIncidentResult> {
   try {
     logger.info('Creating incident in Notion', {
@@ -152,12 +153,15 @@ export async function createIncident(
       responseId: response.id,
     });
 
-    // Append template blocks separately (non-blocking, page already exists)
-    logger.info('Appending template blocks to page');
+    // Append ALL blocks (template + thread messages) in ONE request - reduces API calls
+    logger.info('Appending page content (template + thread messages)', {
+      hasThreadMessages: !!threadMessages && threadMessages.length > 0,
+    });
     try {
       const templateBlocks = buildIncidentPageBlocks({
         description: data.description,
         whyItMatters: data.whyItMatters,
+        threadMessages,
       });
 
       await notionClient.blocks.children.append({
@@ -165,10 +169,12 @@ export async function createIncident(
         children: templateBlocks,
       });
 
-      logger.info('Template blocks appended successfully');
-    } catch (templateError) {
-      logger.error('Failed to append template blocks (non-critical)', {
-        error: templateError,
+      logger.info('Page content appended successfully', {
+        blockCount: templateBlocks.length,
+      });
+    } catch (appendError) {
+      logger.error('Failed to append page content (non-critical)', {
+        error: appendError,
         pageId: response.id,
       });
       // Don't throw - page was already created successfully

@@ -8,9 +8,7 @@ import { createIncident } from '../../notion/createIncident';
 import { IncidentFormData, ThreadMessage } from '../../types/incident';
 import { slackApp } from '../client';
 import { createConfirmationMessage } from '../messages/confirmationMessage';
-import { updateIncidentWithSlackThread } from '../../notion/updateIncident';
 import { fetchThreadMessages } from '../fetchThreadMessages';
-import { appendThreadMessages } from '../../notion/appendThreadMessages';
 
 const logger = createModuleLogger('incident-submission');
 
@@ -131,9 +129,9 @@ export async function handleIncidentSubmission({
       teamIds,
     };
 
-    // Create incident in Notion
+    // Create incident in Notion (includes thread messages to reduce API calls)
     logger.info('Creating incident in Notion');
-    const notionResult = await createIncident(incidentData);
+    const notionResult = await createIncident(incidentData, threadMessages);
 
     // Post confirmation message to Slack
     logger.info('Posting confirmation to Slack', {
@@ -183,24 +181,9 @@ export async function handleIncidentSubmission({
       });
     }
 
-    // Update Notion with Slack thread URL
-    if (slackMessage.ts && slackMessage.channel) {
-      // Build Slack thread URL - use generic format since team:read scope may not be available
-      // Users can click the link and Slack will redirect to the correct workspace
-      const slackThreadUrl = `https://slack.com/app_redirect?channel=${slackMessage.channel}&message_ts=${slackMessage.ts}`;
-
-      await updateIncidentWithSlackThread({
-        notionPageId: notionResult.id,
-        slackThreadUrl,
-        slackMessageTs: slackMessage.ts,
-        slackChannelId: slackMessage.channel,
-      });
-    }
-
-    // Append thread messages separately (non-blocking, won't fail incident creation)
-    if (threadMessages && threadMessages.length > 0) {
-      await appendThreadMessages(notionResult.id, threadMessages);
-    }
+    // Skip Slack URL update to reduce Notion API calls (Slack link not critical)
+    // Thread messages are already included in page creation
+    // This reduces from 4 → 2 Notion API requests per incident
 
     logger.info('Incident created successfully', {
       notionPageId: notionResult.id,
