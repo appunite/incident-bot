@@ -10,6 +10,7 @@ import { slackApp } from '../client';
 import { createConfirmationMessage } from '../messages/confirmationMessage';
 import { fetchThreadMessages } from '../fetchThreadMessages';
 import { findNotionUserByEmail, findNotionUserByName } from '../../notion/findUser';
+import { updateNotionPageWithSlackInfo } from '../../notion/updateSlackInfo';
 
 const logger = createModuleLogger('incident-submission');
 
@@ -179,6 +180,11 @@ export async function handleIncidentSubmission({
         ...confirmationMsg,
       });
     }
+
+    await updateNotionPageWithSlackInfo(notionResult.id, {
+      channelId,
+      messageTs: slackMessage.ts!,
+    });
 
     logger.info('Incident created successfully', {
       notionPageId: notionResult.id,
