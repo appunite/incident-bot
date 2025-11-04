@@ -21,7 +21,7 @@ export async function handleReportMessage({
   body,
 }: any): Promise<void> {
   try {
-    // Acknowledge the shortcut request immediately
+    // Acknowledge IMMEDIATELY - must be within 3 seconds
     await ack();
 
     // Extract message details from the shortcut payload
