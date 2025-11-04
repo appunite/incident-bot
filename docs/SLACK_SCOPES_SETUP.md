@@ -39,3 +39,68 @@ If email access cannot be enabled, alternative matching strategies could be:
 1. Match by name (Slack display name → Notion user name)
 2. Manual Reporter assignment in Notion
 3. Store Slack user ID in a custom Notion property for mapping
+
+---
+
+## Thread Messages Feature
+
+### Required Scopes
+
+To fetch thread messages when reporting incidents from threaded conversations, the following scopes are required:
+
+**Current scopes:**
+- `chat:write`
+- `commands`
+- `users:read`
+- `users:read.email`
+
+**Additional scopes for thread messages:**
+- `channels:history` - Access message history in public channels
+- `groups:history` - Access message history in private channels
+
+### How to Add These Scopes
+
+1. Go to https://api.slack.com/apps
+2. Select your "Incident Bot" app
+3. Navigate to **OAuth & Permissions** in the left sidebar
+4. Scroll down to **Scopes** section
+5. Under **Bot Token Scopes**, add both:
+   - `channels:history`
+   - `groups:history`
+6. Scroll to the top and click **Reinstall to Workspace**
+7. Approve the new permissions
+
+### After Adding the Scopes
+
+The bot will be able to:
+- Fetch all messages from threads when creating incidents from threaded messages
+- Include thread context in Notion incident pages under the "What Happened" section
+- Provide complete conversation history for better incident understanding
+
+Thread messages are displayed in a collapsible toggle block, showing:
+- User name and timestamp for each message
+- Message content
+- Total message count
+
+### Privacy Considerations
+
+These scopes grant the bot access to message history in channels where it's invited. Important notes:
+
+- The bot **only fetches messages** when explicitly creating an incident from that thread
+- Thread messages are **only stored** in the associated Notion incident page
+- No message content is stored in the bot's database
+- Thread fetching only occurs on user action (reporting an incident)
+
+### Feature Behavior
+
+**When thread messages are captured:**
+- User reports an incident using "Report as Incident" message shortcut
+- The message is part of a thread (has replies)
+- Bot fetches up to 30 thread messages (excluding the parent message)
+- Thread messages are added to the Notion page in a toggle block titled "💬 Thread Context (N messages)"
+
+**When thread messages are not captured:**
+- Incident reported using `/incident` command (not from a message)
+- Message is standalone (not part of a thread)
+- Thread fetch fails (gracefully continues without thread context)
+- Bot lacks the required scopes (logs warning, continues without thread context)

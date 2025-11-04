@@ -4,11 +4,13 @@
  */
 
 import { BlockObjectRequest } from '@notionhq/client/build/src/api-endpoints';
+import type { ThreadMessage } from '../types/incident';
 
 interface TemplateData {
   description: string;
   slackThreadUrl?: string;
   whyItMatters?: string;
+  threadMessages?: ThreadMessage[];
 }
 
 /**
@@ -58,6 +60,45 @@ export function buildIncidentPageBlocks(data: TemplateData): BlockObjectRequest[
       ],
     },
   });
+
+  // Add thread context if available
+  if (data.threadMessages && data.threadMessages.length > 0) {
+    const messageCount = data.threadMessages.length;
+    const toggleTitle = `💬 Thread Context (${messageCount} message${messageCount > 1 ? 's' : ''})`;
+
+    // Create quote blocks for each thread message
+    const toggleChildren = data.threadMessages.map((msg) => ({
+      object: 'block' as const,
+      type: 'quote' as const,
+      quote: {
+        rich_text: [
+          {
+            type: 'text' as const,
+            text: {
+              content: `${msg.userName} • ${msg.formattedTime}\n${msg.text}`,
+            },
+          },
+        ],
+        color: 'gray' as const,
+      },
+    }));
+
+    // Add toggle block with thread messages
+    blocks.push({
+      object: 'block',
+      type: 'toggle',
+      toggle: {
+        rich_text: [
+          {
+            type: 'text',
+            text: { content: toggleTitle },
+            annotations: { bold: true },
+          },
+        ],
+        children: toggleChildren as any, // Type assertion needed due to Notion API's complex union types
+      },
+    });
+  }
 
   // Divider
   blocks.push({

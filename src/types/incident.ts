@@ -61,3 +61,11 @@ export interface IncidentChange {
   slackChannelId?: string;
   slackMessageTs?: string;
 }
+
+export interface ThreadMessage {
+  user: string;           // Slack user ID (e.g., "U1234567890")
+  userName: string;       // Display name (e.g., "John Doe")
+  text: string;          // Message text content
+  timestamp: string;     // Raw Slack timestamp (e.g., "1234567890.123456")
+  formattedTime: string; // Human-readable time (e.g., "2:30 PM")
+}

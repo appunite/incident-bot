@@ -5,11 +5,12 @@
 import { SlackViewMiddlewareArgs, AllMiddlewareArgs } from '@slack/bolt';
 import { createModuleLogger } from '../../utils/logger';
 import { createIncident } from '../../notion/createIncident';
-import { IncidentFormData } from '../../types/incident';
+import { IncidentFormData, ThreadMessage } from '../../types/incident';
 import { slackApp } from '../client';
 import { createConfirmationMessage } from '../messages/confirmationMessage';
 import { updateIncidentWithSlackThread } from '../../notion/updateIncident';
 import { findNotionUserByEmail, findNotionUserByName } from '../../notion/findUser';
+import { fetchThreadMessages } from '../fetchThreadMessages';
 
 const logger = createModuleLogger('incident-submission');
 
@@ -87,6 +88,40 @@ export async function handleIncidentSubmission({
     const channelId = messageActionContext.sourceChannelId || view.private_metadata || body.user.id;
     const isFromMessageAction = !!messageActionContext.sourceChannelId;
 
+    // Fetch thread messages if available
+    let threadMessages: ThreadMessage[] | undefined;
+
+    if (messageActionContext.sourceChannelId && messageActionContext.sourceThreadTs) {
+      logger.info('Attempting to fetch thread messages', {
+        sourceChannelId: messageActionContext.sourceChannelId,
+        sourceThreadTs: messageActionContext.sourceThreadTs,
+      });
+
+      try {
+        const threadResult = await fetchThreadMessages(
+          client,
+          messageActionContext.sourceChannelId,
+          messageActionContext.sourceThreadTs,
+          30  // Limit to 30 messages to avoid performance issues
+        );
+
+        if (threadResult && threadResult.messages.length > 0) {
+          threadMessages = threadResult.messages;
+          logger.info('Thread messages fetched successfully', {
+            messageCount: threadResult.messages.length,
+            hasMore: threadResult.hasMore,
+          });
+        } else {
+          logger.info('No thread messages to fetch (only parent message)');
+        }
+      } catch (error) {
+        logger.warn('Failed to fetch thread messages, proceeding without thread context', {
+          error,
+        });
+        // Continue with incident creation even if thread fetch fails
+      }
+    }
+
     // Prepare incident data
     const incidentData: IncidentFormData = {
       title,
@@ -106,8 +141,11 @@ export async function handleIncidentSubmission({
     };
 
     // Create incident in Notion
-    logger.info('Creating incident in Notion');
-    const notionResult = await createIncident(incidentData);
+    logger.info('Creating incident in Notion', {
+      hasThreadMessages: !!threadMessages,
+      threadMessageCount: threadMessages?.length || 0,
+    });
+    const notionResult = await createIncident(incidentData, threadMessages);
 
     // Post confirmation message to Slack
     logger.info('Posting confirmation to Slack', {

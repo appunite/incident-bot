@@ -82,7 +82,9 @@ This method lets you convert an existing Slack message into an incident.
 
 4. **Submit the form**
    - The incident will be linked to the original Slack message thread
+   - If the message is part of a thread, all thread messages will be captured and added to the Notion page
    - Updates will be posted in that thread
+   - Thread context will be available in the Notion page under "What Happened" in a collapsible toggle block
 
 ### What Happens After Submission?
 
@@ -101,6 +103,12 @@ This method lets you convert an existing Slack message into an incident.
 3. **Slack Thread Link**
    - The Notion page includes a link back to the Slack thread
    - This creates a two-way connection between Slack and Notion
+
+4. **Thread Context (If Applicable)**
+   - If the incident was created from a threaded message, all thread replies are captured
+   - Thread messages appear in a collapsible toggle block under "What Happened"
+   - Shows user name, timestamp, and message content for each reply
+   - Provides complete conversation context for better understanding
 
 ---
 

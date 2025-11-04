@@ -3,7 +3,7 @@
  */
 
 import { notionClient, INCIDENTS_DB_ID } from './client';
-import { IncidentFormData } from '../types/incident';
+import { IncidentFormData, ThreadMessage } from '../types/incident';
 import { createModuleLogger } from '../utils/logger';
 import { buildIncidentPageBlocks } from './pageTemplate';
 
@@ -17,9 +17,12 @@ interface CreateIncidentResult {
 
 /**
  * Creates a new incident page in Notion database
+ * @param data - Incident form data from Slack
+ * @param threadMessages - Optional thread messages to include in the page
  */
 export async function createIncident(
-  data: IncidentFormData
+  data: IncidentFormData,
+  threadMessages?: ThreadMessage[]
 ): Promise<CreateIncidentResult> {
   try {
     logger.info('Creating incident in Notion', {
@@ -141,6 +144,7 @@ export async function createIncident(
       children: buildIncidentPageBlocks({
         description: data.description,
         whyItMatters: data.whyItMatters,
+        threadMessages,
       }),
     });
 
