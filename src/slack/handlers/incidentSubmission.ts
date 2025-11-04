@@ -9,7 +9,7 @@ import { IncidentFormData } from '../../types/incident';
 import { slackApp } from '../client';
 import { createConfirmationMessage } from '../messages/confirmationMessage';
 import { updateIncidentWithSlackThread } from '../../notion/updateIncident';
-import { findNotionUserByEmail } from '../../notion/findUser';
+import { findNotionUserByEmail, findNotionUserByName } from '../../notion/findUser';
 
 const logger = createModuleLogger('incident-submission');
 
@@ -53,6 +53,19 @@ export async function handleIncidentSubmission({
       reporterNotionId = await findNotionUserByEmail(userEmail);
     }
 
+    // Fallback: Try to match by name if email lookup failed
+    if (!reporterNotionId && userName) {
+      reporterNotionId = await findNotionUserByName(userName);
+    }
+
+    if (!reporterNotionId) {
+      logger.warn('Could not find Notion user for Reporter assignment', {
+        userId: body.user.id,
+        userName,
+        userEmail,
+      });
+    }
+
     // Parse private_metadata to check if this is from a message action
     let messageActionContext: {
       sourceChannelId?: string;
@@ -72,17 +85,6 @@ export async function handleIncidentSubmission({
     // Determine channel ID - use source channel from message action if available
     const channelId = messageActionContext.sourceChannelId || view.private_metadata || body.user.id;
     const isFromMessageAction = !!messageActionContext.sourceChannelId;
-
-    logger.info('Form data extracted', {
-      title,
-      severity,
-      area,
-      userName,
-      userEmail,
-      reporterNotionId,
-      isFromMessageAction,
-      sourceChannel: messageActionContext.sourceChannelId,
-    });
 
     // Prepare incident data
     const incidentData: IncidentFormData = {
