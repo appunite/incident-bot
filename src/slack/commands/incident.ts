@@ -7,7 +7,7 @@ import { SlackCommandMiddlewareArgs, AllMiddlewareArgs } from '@slack/bolt';
 import { createModuleLogger } from '../../utils/logger';
 import { createIncidentModal } from '../views/incidentModal';
 import { handleError } from '../../utils/errorHandler';
-import { getTeams } from '../../notion/getTeams';
+import { getCachedTeams } from '../../notion/teamsCache';
 
 const logger = createModuleLogger('incident-command');
 
@@ -20,6 +20,11 @@ export async function handleIncidentCommand({
   ack,
   client,
 }: SlackCommandMiddlewareArgs & AllMiddlewareArgs): Promise<void> {
+  logger.info('/incident command received', {
+    userId: command.user_id,
+    channelId: command.channel_id,
+  });
+
   try {
     // Acknowledge the command request immediately
     await ack();
@@ -27,27 +32,22 @@ export async function handleIncidentCommand({
     // Extract text from command (everything after /incident)
     const commandText = command.text?.trim() || '';
 
-    logger.info('Opening incident modal', {
-      userId: command.user_id,
-      channelId: command.channel_id,
-      commandText,
+    // Get teams from cache (instant, no API call)
+    const teams = getCachedTeams();
+
+    const modalView = createIncidentModal({
+      initialTitle: commandText || undefined,
+      teams,
     });
 
-    // Fetch teams from Notion (if configured)
-    const teams = await getTeams();
-    logger.info('Teams fetched for modal', { teamsCount: teams.length });
-
-    // Open the modal with optional initial title from command text and teams
     await client.views.open({
       trigger_id: command.trigger_id,
-      view: createIncidentModal({
-        initialTitle: commandText || undefined,
-        teams,
-      }),
+      view: modalView,
     });
 
     logger.info('Incident modal opened successfully', {
       userId: command.user_id,
+      teamsCount: teams.length,
     });
   } catch (error) {
     logger.error('Failed to open incident modal', {
@@ -62,7 +62,7 @@ export async function handleIncidentCommand({
       await client.chat.postEphemeral({
         channel: command.channel_id,
         user: command.user_id,
-        text: `❌ Failed to open incident form: ${errorMessage}`,
+        text: `Failed to open incident form: ${errorMessage}`,
       });
     } catch (messageError) {
       logger.error('Failed to send error message', { error: messageError });

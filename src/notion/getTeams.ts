@@ -27,14 +27,21 @@ export async function getTeams(): Promise<Team[]> {
 
     logger.info('Fetching teams from Notion', { dbId: env.NOTION_TEAMS_DB_ID });
 
-    // Query the Teams database
+    // Query the Teams database - only fetch active teams
     const response = await notionClient.databases.query({
       database_id: env.NOTION_TEAMS_DB_ID,
+      filter: {
+        property: 'Active',
+        checkbox: {
+          equals: true,
+        },
+      },
     });
 
     // Extract team names from page titles
     const teams: Team[] = response.results.map((page: any) => {
-      const titleProperty = page.properties.Name || page.properties.Title;
+      // Check for common title property names: Team, Name, Title
+      const titleProperty = page.properties.Team || page.properties.Name || page.properties.Title;
       let name = 'Unnamed Team';
 
       if (titleProperty?.title?.[0]?.plain_text) {

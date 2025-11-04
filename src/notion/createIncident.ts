@@ -116,9 +116,9 @@ export async function createIncident(
       };
     }
 
-    // Add Team relation if provided
+    // Add Teams relation if provided
     if (data.teamIds && data.teamIds.length > 0) {
-      properties.Team = {
+      properties.Teams = {
         relation: data.teamIds.map((id) => ({ id })),
       };
     }

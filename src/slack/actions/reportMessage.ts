@@ -6,28 +6,27 @@
 import { createModuleLogger } from '../../utils/logger';
 import { createIncidentModal } from '../views/incidentModal';
 import { handleError } from '../../utils/errorHandler';
-import { getTeams } from '../../notion/getTeams';
+import { getCachedTeams } from '../../notion/teamsCache';
 
 const logger = createModuleLogger('report-message-action');
 
 /**
- * Handles "Report as Incident" message action
+ * Handles "Report as Incident" message shortcut
  * Opens modal pre-filled with message content
  */
 export async function handleReportMessage({
-  action,
+  shortcut,
   ack,
   client,
   body,
 }: any): Promise<void> {
   try {
-    // Acknowledge the action request immediately
+    // Acknowledge the shortcut request immediately
     await ack();
 
-    // Extract message details from the action payload
-    const messageAction = action as any;
-    const message = messageAction.message;
-    const channelId = messageAction.channel.id;
+    // Extract message details from the shortcut payload
+    const message = shortcut.message;
+    const channelId = shortcut.channel.id;
     const messageTs = message.ts;
     const messageText = message.text || '';
 
@@ -48,9 +47,9 @@ export async function handleReportMessage({
       sourceThreadTs: threadTs,
     });
 
-    // Fetch teams from Notion (if configured)
-    const teams = await getTeams();
-    logger.info('Teams fetched for modal', { teamsCount: teams.length });
+    // Get teams from cache (instant, no API call)
+    const teams = getCachedTeams();
+    logger.info('Teams from cache for modal', { teamsCount: teams.length });
 
     // Open the modal with message text pre-filled
     await client.views.open({

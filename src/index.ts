@@ -10,14 +10,15 @@ import { notionClient } from './notion/client';
 import { handleIncidentCommand } from './slack/commands/incident';
 import { handleIncidentSubmission } from './slack/handlers/incidentSubmission';
 import { handleReportMessage } from './slack/actions/reportMessage';
+import { initializeTeamsCache, stopTeamsCache } from './notion/teamsCache';
 
 const startupLogger = logger.child({ module: 'startup' });
 
 // Register Slack command handlers
 slackApp.command('/incident', handleIncidentCommand);
 
-// Register message action handlers
-slackApp.action('report_as_incident', handleReportMessage);
+// Register message shortcut handlers
+slackApp.shortcut('report_as_incident', handleReportMessage);
 
 // Register view submission handlers
 slackApp.view('incident_modal', handleIncidentSubmission);
@@ -83,6 +84,11 @@ async function start() {
     startupLogger.info(`Environment: ${env.NODE_ENV}`);
     startupLogger.info(`Port: ${env.PORT}`);
 
+    // Initialize teams cache (runs in background, doesn't block startup)
+    initializeTeamsCache().catch((error) => {
+      startupLogger.error('Failed to initialize teams cache:', error);
+    });
+
     // Start Slack Bolt receiver (includes Express server)
     await slackApp.start(env.PORT);
 
@@ -100,6 +106,7 @@ async function start() {
  */
 async function shutdown() {
   startupLogger.info('Shutting down gracefully...');
+  stopTeamsCache();
   await slackApp.stop();
   process.exit(0);
 }
