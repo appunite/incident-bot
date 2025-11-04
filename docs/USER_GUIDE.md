@@ -36,8 +36,6 @@ This is the primary way to report a new incident in Slack.
      - You can edit or expand this later in Notion
 
    - **Severity** - Choose the appropriate level:
-     - **🔥 Critical** - Immediate, widespread impact (e.g., service completely down)
-     - **🔥 High** - Significant impact (e.g., major feature broken)
      - **ASAP** - Urgent but limited scope (e.g., single client affected)
      - **High** - Important but not blocking
      - **Normal** - Regular priority issue
@@ -317,23 +315,9 @@ CEO is personally monitoring this launch.
 
 Use this guide to select appropriate severity:
 
-**🔥 Critical**
-- Production completely down
-- Data loss or corruption
-- Security breach
-- Multiple clients affected
-- Revenue-impacting outage
-- **Response time: Immediate**
-
-**🔥 High**
-- Major feature broken
-- Single client severely impacted
-- Deployment blocked
-- Significant performance degradation
-- **Response time: Within hours**
-
 **ASAP**
 - Urgent issue with limited scope
+- Single client affected
 - Workaround available but not ideal
 - Time-sensitive but not blocking
 - Client escalation
@@ -341,18 +325,21 @@ Use this guide to select appropriate severity:
 
 **High**
 - Important but not blocking work
-- Affects team efficiency
+- Affects team efficiency or delivery
 - Needs attention soon
+- Significant impact but manageable
 - **Response time: Within a few days**
 
 **Normal**
 - Regular priority issue
 - Can be scheduled with other work
+- Standard workflow issues
 - **Response time: Within a week**
 
 **Low**
 - Minor inconvenience
 - Nice-to-have improvement
+- Low urgency
 - **Response time: When capacity allows**
 
 ### Selecting the Right Area

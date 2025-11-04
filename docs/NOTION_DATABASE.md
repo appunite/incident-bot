@@ -20,8 +20,8 @@ Below are all properties defined in the Incidents data source, with types, allow
     - Usage: Move cards as work progresses. "Resolved" means mitigated, "Closed" after postmortem or agreed finish.
 - **Severity**
     - Type: Select
-    - Options: 🔥 Critical, 🔥 High, ASAP, Normal, Low, High
-    - Usage: Use 🔥 Critical for immediate, widespread impact; "ASAP" for urgent but limited scope.
+    - Options: ASAP, High, Normal, Low
+    - Usage: Use "ASAP" for urgent but limited scope issues; "High" for important but not blocking; "Normal" for regular priority; "Low" for minor issues.
 - **Area**
     - Type: Select
     - Options: Client, Internal, Process, People, Client Communication

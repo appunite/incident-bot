@@ -115,20 +115,6 @@ export function createIncidentModal(options?: IncidentModalOptions): View {
             {
               text: {
                 type: 'plain_text',
-                text: '🔥 Critical - Immediate, widespread impact',
-              },
-              value: '🔥 Critical',
-            },
-            {
-              text: {
-                type: 'plain_text',
-                text: '🔥 High - Significant impact',
-              },
-              value: '🔥 High',
-            },
-            {
-              text: {
-                type: 'plain_text',
                 text: 'ASAP - Urgent but limited scope',
               },
               value: 'ASAP',
@@ -136,21 +122,21 @@ export function createIncidentModal(options?: IncidentModalOptions): View {
             {
               text: {
                 type: 'plain_text',
-                text: 'High - Important',
+                text: 'High - Important but not blocking',
               },
               value: 'High',
             },
             {
               text: {
                 type: 'plain_text',
-                text: 'Normal - Regular priority',
+                text: 'Normal - Regular priority issue',
               },
               value: 'Normal',
             },
             {
               text: {
                 type: 'plain_text',
-                text: 'Low - Minor issue',
+                text: 'Low - Minor issue, low urgency',
               },
               value: 'Low',
             },

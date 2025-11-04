@@ -2,7 +2,7 @@
  * Type definitions for Incident Bot
  */
 
-export type IncidentSeverity = '🔥 Critical' | '🔥 High' | 'ASAP' | 'Normal' | 'Low' | 'High';
+export type IncidentSeverity = 'ASAP' | 'High' | 'Normal' | 'Low';
 
 export type IncidentStatus = 'Open' | 'In Progress' | 'Resolved' | 'Closed';
 
