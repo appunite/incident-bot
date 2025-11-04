@@ -92,7 +92,7 @@ export async function handleIncidentSubmission({
           client,
           messageActionContext.sourceChannelId,
           messageActionContext.sourceThreadTs,
-          30  // Limit to 30 messages to avoid performance issues
+          10  // Limit to 10 messages for Vercel Pro 30s timeout
         );
 
         if (threadResult && threadResult.messages.length > 0) {
