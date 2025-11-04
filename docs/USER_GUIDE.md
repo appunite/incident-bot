@@ -192,7 +192,6 @@ The Incidents database includes several pre-configured views:
 **Documentation Fields:**
 
 - **Trigger** - What initiated detection (e.g., "PagerDuty alert", "Client email")
-- **Collaboration / Client** - Associated client or project name
 - **Postmortem Completed** - Checkbox to mark when postmortem is done
 
 **System Fields:**

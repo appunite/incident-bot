@@ -86,8 +86,12 @@ export async function handleIncidentSubmission({
       logger.warn('Failed to parse private_metadata', { error });
     }
 
-    const channelId = messageActionContext.sourceChannelId || view.private_metadata || body.user.id;
     const isFromMessageAction = !!messageActionContext.sourceChannelId;
+    const sourceIsChannel = messageActionContext.sourceChannelId && messageActionContext.sourceChannelId.startsWith('C');
+
+    const channelId = sourceIsChannel
+      ? messageActionContext.sourceChannelId
+      : body.user.id;
 
     let threadMessages: ThreadMessage[] | undefined;
 
@@ -152,14 +156,14 @@ export async function handleIncidentSubmission({
 
     let slackMessage;
 
-    if (isFromMessageAction) {
+    if (isFromMessageAction && sourceIsChannel) {
       slackMessage = await slackApp.client.chat.postMessage({
         channel: channelId,
         thread_ts: messageActionContext.sourceThreadTs,
         ...confirmationMsg,
       });
 
-      logger.info('Posted public thread reply', {
+      logger.info('Posted public thread reply in channel', {
         channel: channelId,
         threadTs: messageActionContext.sourceThreadTs,
         messageTs: slackMessage.ts,
@@ -178,6 +182,11 @@ export async function handleIncidentSubmission({
       slackMessage = await slackApp.client.chat.postMessage({
         channel: channelId,
         ...confirmationMsg,
+      });
+
+      logger.info('Posted confirmation to user DM', {
+        userId: body.user.id,
+        messageTs: slackMessage.ts,
       });
     }
 

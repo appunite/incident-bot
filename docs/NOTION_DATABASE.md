@@ -41,9 +41,6 @@ Below are all properties defined in the Incidents data source, with types, allow
 - **Impact**
     - Type: Text
     - Usage: Affected users/systems, scope, and business impact.
-- **Collaboration / Client**
-    - Type: Text
-    - Usage: Client or collaboration name (e.g., "Allegro", "Indivi").
 - **Trigger**
     - Type: Text
     - Usage: Immediate trigger or signal (e.g., "PagerDuty alert", "Client email").
@@ -99,7 +96,7 @@ Below are all properties defined in the Incidents data source, with types, allow
 - **All Incidents**
     - Type: Table
     - Sort: Detected Date descending
-    - Columns: Title, Status, Severity, Area, Happened Date, Detected Date, Owner, Reporter, Description, Impact, Collaboration / Client, Trigger, Accountable, Created From, Postmortem Completed, Slack Channel ID, Slack Thread ID, Slack Message URL, Last Synced, Updated By System, Due Date
+    - Columns: Title, Status, Severity, Area, Happened Date, Detected Date, Owner, Reporter, Description, Impact, Trigger, Accountable, Created From, Postmortem Completed, Slack Channel ID, Slack Thread ID, Slack Message URL, Last Synced, Updated By System, Due Date
     - Usage: Full audit and reporting.
 - **Timeline**
     - Type: Timeline
@@ -108,7 +105,7 @@ Below are all properties defined in the Incidents data source, with types, allow
 - **Unassigned**
     - Type: Table
     - Sort: Detected Date descending
-    - Columns: Title, Status, Severity, Area, Happened Date, Detected Date, Reporter, Description, Impact, Collaboration / Client
+    - Columns: Title, Status, Severity, Area, Happened Date, Detected Date, Reporter, Description, Impact
     - Usage: Triage queue for assigning Owners.
 - **Postmortem Pending**
     - Type: Table
