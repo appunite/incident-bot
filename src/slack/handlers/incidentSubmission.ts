@@ -132,11 +132,8 @@ export async function handleIncidentSubmission({
     };
 
     // Create incident in Notion
-    logger.info('Creating incident in Notion', {
-      hasThreadMessages: !!threadMessages,
-      threadMessageCount: threadMessages?.length || 0,
-    });
-    const notionResult = await createIncident(incidentData, threadMessages);
+    logger.info('Creating incident in Notion');
+    const notionResult = await createIncident(incidentData);
 
     // Post confirmation message to Slack
     logger.info('Posting confirmation to Slack', {
