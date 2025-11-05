@@ -69,3 +69,15 @@ export interface ThreadMessage {
   timestamp: string;     // Raw Slack timestamp (e.g., "1234567890.123456")
   formattedTime: string; // Human-readable time (e.g., "2:30 PM")
 }
+
+export interface UnassignedIncident {
+  id: string;
+  url: string;
+  title: string;
+  severity: IncidentSeverity;
+  status: 'Open' | 'In Progress';
+  area: IncidentArea;
+  detectedDate: string;
+  daysSinceCreation: number;
+  teamIds?: string[];
+}

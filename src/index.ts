@@ -11,8 +11,12 @@ import { handleIncidentCommand } from './slack/commands/incident';
 import { handleIncidentSubmission } from './slack/handlers/incidentSubmission';
 import { handleReportMessage } from './slack/actions/reportMessage';
 import { initializeTeamsCache, stopTeamsCache } from './notion/teamsCache';
+import { startDailyDigestScheduler, stopDailyDigestScheduler } from './services/dailyDigest';
 
 const startupLogger = logger.child({ module: 'startup' });
+
+// Scheduler references for graceful shutdown
+let digestScheduler: any = null;
 
 // Register Slack command handlers
 slackApp.command('/incident', handleIncidentCommand);
@@ -89,6 +93,14 @@ async function start() {
       startupLogger.error('Failed to initialize teams cache:', error);
     });
 
+    // Start daily digest scheduler (if channel configured)
+    if (env.SLACK_DIGEST_CHANNEL_ID) {
+      digestScheduler = startDailyDigestScheduler();
+      startupLogger.info('Daily digest scheduler started (9 AM weekdays, GMT+1)');
+    } else {
+      startupLogger.info('Daily digest scheduler disabled (no channel configured)');
+    }
+
     // Start Slack Bolt receiver (includes Express server)
     await slackApp.start(env.PORT);
 
@@ -107,6 +119,9 @@ async function start() {
 async function shutdown() {
   startupLogger.info('Shutting down gracefully...');
   stopTeamsCache();
+  if (digestScheduler) {
+    stopDailyDigestScheduler(digestScheduler);
+  }
   await slackApp.stop();
   process.exit(0);
 }
