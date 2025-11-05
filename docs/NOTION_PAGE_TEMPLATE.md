@@ -13,8 +13,9 @@
 # 🧰 Resolution Plan  
 > Steps that will be taken to move this incident toward resolution:  
 
+- [ ] **Confirm Accountable** – clarify who oversees progress and ensures 
 - [ ] **Assign an Owner** – designate who is responsible for driving resolution  
-- [ ] **Confirm Accountable** – clarify who oversees progress and ensures closure  
+closure  
 - [ ] **Identify Root Cause** – quickly assess what triggered or caused the issue  
 - [ ] **Immediate Actions** – what’s being done right now to mitigate impact  
 - [ ] **Longer-term Fix** – what will be changed to prevent this from happening again  

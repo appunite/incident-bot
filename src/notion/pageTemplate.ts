@@ -182,8 +182,8 @@ export function buildIncidentPageBlocks(data: TemplateData): BlockObjectRequest[
 
   // Checklist items
   const checklistItems = [
-    'Assign an Owner - designate who is responsible for driving resolution',
     'Confirm Accountable - clarify who oversees progress and ensures closure',
+    'Assign an Owner - designate who is responsible for driving resolution',
     'Identify Root Cause - quickly assess what triggered or caused the issue',
     'Immediate Actions - what is being done right now to mitigate impact',
     'Longer-term Fix - what will be changed to prevent this from happening again',
