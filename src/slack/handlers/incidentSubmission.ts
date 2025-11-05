@@ -8,9 +8,12 @@ import { createIncident } from '../../notion/createIncident';
 import { IncidentFormData, ThreadMessage } from '../../types/incident';
 import { slackApp } from '../client';
 import { createConfirmationMessage } from '../messages/confirmationMessage';
+import { createDigestMessage } from '../messages/digestMessage';
 import { fetchThreadMessages } from '../fetchThreadMessages';
 import { findNotionUserByEmail, findNotionUserByName } from '../../notion/findUser';
 import { updateNotionPageWithSlackInfo } from '../../notion/updateSlackInfo';
+import { getTeamNamesByIds } from '../../notion/teamsCache';
+import { env } from '../../config/env';
 
 const logger = createModuleLogger('incident-submission');
 
@@ -194,6 +197,52 @@ export async function handleIncidentSubmission({
       channelId,
       messageTs: slackMessage.ts!,
     });
+
+    // Send digest notification to configured channel (if set)
+    if (env.SLACK_DIGEST_CHANNEL_ID) {
+      try {
+        logger.info('Sending digest notification', {
+          digestChannel: env.SLACK_DIGEST_CHANNEL_ID,
+        });
+
+        // Resolve team IDs to team names
+        const teamNames = incidentData.teamIds
+          ? getTeamNamesByIds(incidentData.teamIds)
+          : [];
+
+        // Build Slack thread URL if from message action
+        let slackThreadUrl: string | undefined;
+        if (messageActionContext.sourceChannelId && messageActionContext.sourceThreadTs) {
+          const workspace = await slackApp.client.team.info();
+          const workspaceDomain = workspace.team?.domain || 'slack';
+          slackThreadUrl = `https://${workspaceDomain}.slack.com/archives/${messageActionContext.sourceChannelId}/p${messageActionContext.sourceThreadTs.replace('.', '')}`;
+        }
+
+        const digestMsg = createDigestMessage({
+          incidentData,
+          notionPageUrl: notionResult.url,
+          teamNames,
+          slackThreadUrl,
+        });
+
+        await slackApp.client.chat.postMessage({
+          channel: env.SLACK_DIGEST_CHANNEL_ID,
+          ...digestMsg,
+        });
+
+        logger.info('Digest notification sent successfully', {
+          digestChannel: env.SLACK_DIGEST_CHANNEL_ID,
+        });
+      } catch (digestError) {
+        // Non-blocking: log error but don't fail incident creation
+        logger.error('Failed to send digest notification', {
+          error: digestError,
+          message: digestError instanceof Error ? digestError.message : 'Unknown error',
+        });
+      }
+    } else {
+      logger.debug('Digest channel not configured, skipping digest notification');
+    }
 
     logger.info('Incident created successfully', {
       notionPageId: notionResult.id,

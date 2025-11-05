@@ -54,6 +54,24 @@ export function getCachedTeams(): Team[] {
 }
 
 /**
+ * Resolves team IDs to team names from cache
+ * @param teamIds - Array of Notion team page IDs
+ * @returns Array of team names
+ */
+export function getTeamNamesByIds(teamIds: string[]): string[] {
+  if (!teamIds || teamIds.length === 0) {
+    return [];
+  }
+
+  return teamIds
+    .map((id) => {
+      const team = cache.teams.find((t) => t.id === id);
+      return team?.name;
+    })
+    .filter((name): name is string => name !== undefined);
+}
+
+/**
  * Gets cache status information
  */
 export function getCacheInfo(): { teamsCount: number; lastUpdated: Date | null } {
