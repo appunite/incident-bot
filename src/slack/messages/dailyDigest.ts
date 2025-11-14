@@ -25,28 +25,8 @@ export function createDailyDigestMessage({
     day: 'numeric',
   });
 
-  // Empty state - all incidents have owners
-  if (incidents.length === 0) {
-    return {
-      text: `📋 Daily Incident Digest - ${today}`,
-      blocks: [
-        {
-          type: 'header',
-          text: {
-            type: 'plain_text',
-            text: `📋 Daily Incident Digest - ${today}`,
-          },
-        },
-        {
-          type: 'section',
-          text: {
-            type: 'mrkdwn',
-            text: '✅ *Great news!* All incidents have assigned owners.\n\nKeep up the good work! 🎉',
-          },
-        },
-      ],
-    };
-  }
+  // Note: This function is only called when incidents.length > 0
+  // Empty state is handled in the scheduler service
 
   // Group incidents by severity
   const severityOrder: IncidentSeverity[] = ['ASAP', 'High', 'Normal', 'Low'];
