@@ -36,6 +36,12 @@ export async function sendDailyDigest(): Promise<void> {
       count: incidents.length,
     });
 
+    // Skip sending digest if no unassigned incidents
+    if (incidents.length === 0) {
+      logger.info('No unassigned incidents, skipping daily digest');
+      return;
+    }
+
     // Resolve team names for all incidents
     const teamNamesMap = new Map<string, string[]>();
     incidents.forEach(incident => {
