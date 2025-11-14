@@ -159,44 +159,88 @@ export async function handleIncidentSubmission({
 
     let slackMessage;
 
-    if (isFromMessageAction && sourceIsChannel) {
-      slackMessage = await slackApp.client.chat.postMessage({
-        channel: channelId,
-        thread_ts: messageActionContext.sourceThreadTs,
-        ...confirmationMsg,
+    // Try to post confirmation message (non-blocking)
+    try {
+      if (isFromMessageAction && sourceIsChannel) {
+        slackMessage = await slackApp.client.chat.postMessage({
+          channel: channelId,
+          thread_ts: messageActionContext.sourceThreadTs,
+          ...confirmationMsg,
+        });
+
+        logger.info('Posted public thread reply in channel', {
+          channel: channelId,
+          threadTs: messageActionContext.sourceThreadTs,
+          messageTs: slackMessage.ts,
+        });
+
+        await slackApp.client.chat.postEphemeral({
+          channel: channelId,
+          user: body.user.id,
+          text: `✅ Incident reported successfully! View in Notion: ${notionResult.url}`,
+        });
+
+        logger.info('Posted ephemeral confirmation to user', {
+          userId: body.user.id,
+        });
+      } else {
+        slackMessage = await slackApp.client.chat.postMessage({
+          channel: channelId,
+          ...confirmationMsg,
+        });
+
+        logger.info('Posted confirmation to user DM', {
+          userId: body.user.id,
+          messageTs: slackMessage.ts,
+        });
+      }
+    } catch (confirmationError) {
+      logger.warn('Failed to post confirmation message to channel', {
+        error: confirmationError,
+        channelId,
+        message: confirmationError instanceof Error ? confirmationError.message : 'Unknown error',
+        reason: 'Bot may not be in channel or channel is private/archived',
       });
 
-      logger.info('Posted public thread reply in channel', {
-        channel: channelId,
-        threadTs: messageActionContext.sourceThreadTs,
-        messageTs: slackMessage.ts,
-      });
+      // Fallback: Send DM to user instead
+      try {
+        slackMessage = await slackApp.client.chat.postMessage({
+          channel: body.user.id,
+          text: `✅ *Incident reported successfully!*\n\nView in Notion: ${notionResult.url}\n\n⚠️ _Note: Could not post to original channel. Make sure the Incident Bot is invited to private channels._`,
+        });
 
-      await slackApp.client.chat.postEphemeral({
-        channel: channelId,
-        user: body.user.id,
-        text: `✅ Incident reported successfully! View in Notion: ${notionResult.url}`,
-      });
-
-      logger.info('Posted ephemeral confirmation to user', {
-        userId: body.user.id,
-      });
-    } else {
-      slackMessage = await slackApp.client.chat.postMessage({
-        channel: channelId,
-        ...confirmationMsg,
-      });
-
-      logger.info('Posted confirmation to user DM', {
-        userId: body.user.id,
-        messageTs: slackMessage.ts,
-      });
+        logger.info('Sent confirmation via DM fallback', {
+          userId: body.user.id,
+          messageTs: slackMessage.ts,
+        });
+      } catch (dmError) {
+        logger.error('Failed to send DM fallback', {
+          error: dmError,
+          userId: body.user.id,
+        });
+      }
     }
 
-    await updateNotionPageWithSlackInfo(notionResult.id, {
-      channelId,
-      messageTs: slackMessage.ts!,
-    });
+    // Update Notion with Slack info (non-blocking)
+    if (slackMessage?.ts) {
+      try {
+        await updateNotionPageWithSlackInfo(notionResult.id, {
+          channelId: slackMessage.channel as string || channelId,
+          messageTs: slackMessage.ts,
+        });
+
+        logger.info('Updated Notion page with Slack info', {
+          notionPageId: notionResult.id,
+          slackChannelId: slackMessage.channel,
+          slackMessageTs: slackMessage.ts,
+        });
+      } catch (updateError) {
+        logger.warn('Failed to update Notion page with Slack info', {
+          error: updateError,
+          notionPageId: notionResult.id,
+        });
+      }
+    }
 
     // Send digest notification to configured channel (if set)
     if (env.SLACK_DIGEST_CHANNEL_ID) {
@@ -246,7 +290,7 @@ export async function handleIncidentSubmission({
 
     logger.info('Incident created successfully', {
       notionPageId: notionResult.id,
-      slackMessageTs: slackMessage.ts,
+      slackMessageTs: slackMessage?.ts,
       isFromMessageAction,
       hasThreadMessages: !!threadMessages && threadMessages.length > 0,
     });
