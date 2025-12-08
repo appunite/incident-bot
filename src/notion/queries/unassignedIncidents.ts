@@ -13,7 +13,7 @@ export interface UnassignedIncident {
   url: string;
   title: string;
   severity: IncidentSeverity;
-  status: 'Open' | 'In Progress';
+  status: 'Open' | 'In Progress' | 'Ready for Review';
   area: IncidentArea;
   detectedDate: string;
   daysSinceCreation: number;
@@ -51,6 +51,12 @@ export async function getUnassignedIncidents(): Promise<UnassignedIncident[]> {
                 property: 'Status',
                 status: {
                   equals: 'In Progress',
+                },
+              },
+              {
+                property: 'Status',
+                status: {
+                  equals: 'Ready for Review',
                 },
               },
             ],
@@ -91,7 +97,7 @@ export async function getUnassignedIncidents(): Promise<UnassignedIncident[]> {
         url,
         title,
         severity: severity as IncidentSeverity,
-        status: status as 'Open' | 'In Progress',
+        status: status as 'Open' | 'In Progress' | 'Ready for Review',
         area: area as IncidentArea,
         detectedDate: detectedDateStr || new Date().toISOString(),
         daysSinceCreation,

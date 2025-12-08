@@ -125,7 +125,7 @@ The Incidents database is your central hub for tracking all reported incidents. 
 The Incidents database includes several pre-configured views:
 
 **1. By Status** (Board view)
-- Grouped by: Status (Open, In Progress, Resolved, Invalid)
+- Grouped by: Status (Open, In Progress, Ready for Review, Resolved, Invalid)
 - Use for: Daily standup, triage, and tracking progress
 - Shows: Title, Owner, Severity
 
@@ -161,6 +161,7 @@ The Incidents database includes several pre-configured views:
 - **Status** - Current state of the incident:
   - **Open** - Newly reported, not yet assigned
   - **In Progress** - Actively being worked on
+  - **Ready for Review** - Work is complete, waiting for verification
   - **Resolved** - Issue mitigated or fixed
   - **Invalid** - Incident was invalid or a false alarm
 - **Severity** - Impact level (set during reporting)
@@ -239,7 +240,11 @@ The Incidents database includes several pre-configured views:
    - What could be improved
    - Action items (with owners)
 4. Check the **Postmortem Completed** box
-5. Update **Status** to "Invalid" or "Resolved"
+5. Update **Status** to "Ready for Review" when work is done.
+6. **Reporter** verifies the fix.
+7. **Owner** updates **Status** to "Resolved" (if fixed) or "Invalid" (if false alarm).
+
+> **Note:** Only the incident **Owner** should change the status to "Resolved" or "Invalid".
 
 ### Using the Slack Thread Link
 
