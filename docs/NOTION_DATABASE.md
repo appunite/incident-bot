@@ -17,7 +17,8 @@ Below are all properties defined in the Incidents data source, with types, allow
         - To do: Open
         - In progress: In Progress
         - Complete: Resolved, Invalid
-    - Usage: Move cards as work progresses. "Resolved" means mitigated/fixed. "Invalid" means false alarm or not an incident.
+        - In Progress: Ready for Review
+    - Usage: Move cards as work progresses. "Ready for Review" for verification. "Resolved" means mitigated/fixed. "Invalid" means false alarm.
 - **Severity**
     - Type: Select
     - Options: ASAP, High, Normal, Low

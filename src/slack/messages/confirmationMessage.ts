@@ -77,6 +77,15 @@ export function createConfirmationMessage({
           },
         ],
       },
+      {
+        type: 'context',
+        elements: [
+          {
+            type: 'mrkdwn',
+            text: `ℹ️ *Process Note:* As the reporter, you will be asked to verify the fix when the status changes to 'Ready for Review'. <https://www.notion.so/appunite/Who-Can-Resolve-or-Close-an-Incident-2c348f00171080869a51c020b1215052|Read about the resolution process>.`,
+          },
+        ],
+      },
     ],
   };
 }
