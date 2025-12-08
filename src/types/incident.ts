@@ -4,7 +4,7 @@
 
 export type IncidentSeverity = 'ASAP' | 'High' | 'Normal' | 'Low';
 
-export type IncidentStatus = 'Open' | 'In Progress' | 'Resolved' | 'Closed';
+export type IncidentStatus = 'Open' | 'In Progress' | 'Resolved' | 'Invalid';
 
 export type IncidentArea = 'Client' | 'Internal' | 'Process' | 'People' | 'Client Communication';
 

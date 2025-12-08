@@ -102,7 +102,7 @@ Add these properties to your "Incidents" database:
 |--------------|------|---------|
 | Title | Title | (default) |
 | Description | Rich Text | - |
-| Status | Select | New, In Progress, Resolved, Closed |
+| Status | Select | New, In Progress, Resolved, Invalid |
 | Severity | Select | Critical, High, Medium, Low |
 | Area | Select | Client Communication, Internal Process, Technical, Other |
 | Owner | Person | - |

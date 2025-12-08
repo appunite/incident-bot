@@ -16,8 +16,8 @@ Below are all properties defined in the Incidents data source, with types, allow
     - Groups and options:
         - To do: Open
         - In progress: In Progress
-        - Complete: Resolved, Closed
-    - Usage: Move cards as work progresses. "Resolved" means mitigated, "Closed" after postmortem or agreed finish.
+        - Complete: Resolved, Invalid
+    - Usage: Move cards as work progresses. "Resolved" means mitigated/fixed. "Invalid" means false alarm or not an incident.
 - **Severity**
     - Type: Select
     - Options: ASAP, High, Normal, Low
