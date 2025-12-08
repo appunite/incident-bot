@@ -125,7 +125,7 @@ The Incidents database is your central hub for tracking all reported incidents. 
 The Incidents database includes several pre-configured views:
 
 **1. By Status** (Board view)
-- Grouped by: Status (Open, In Progress, Resolved, Closed)
+- Grouped by: Status (Open, In Progress, Resolved, Invalid)
 - Use for: Daily standup, triage, and tracking progress
 - Shows: Title, Owner, Severity
 
@@ -162,7 +162,7 @@ The Incidents database includes several pre-configured views:
   - **Open** - Newly reported, not yet assigned
   - **In Progress** - Actively being worked on
   - **Resolved** - Issue mitigated or fixed
-  - **Closed** - Postmortem complete, incident archived
+  - **Invalid** - Incident was invalid or a false alarm
 - **Severity** - Impact level (set during reporting)
 - **Area** - Affected domain (set during reporting)
 - **Description** - Summary of what happened
@@ -239,7 +239,7 @@ The Incidents database includes several pre-configured views:
    - What could be improved
    - Action items (with owners)
 4. Check the **Postmortem Completed** box
-5. Update **Status** to "Closed"
+5. Update **Status** to "Invalid" or "Resolved"
 
 ### Using the Slack Thread Link
 
@@ -447,7 +447,7 @@ A: This requires the Slack bot to have the `users:read.email` scope. Contact you
 A: Yes! Click the link in the Slack confirmation message to open the Notion page, where you can edit any field or add more information.
 
 **Q: What happens if I submit the form by accident?**
-A: You can immediately update the Status to "Closed" in Notion, or delete the page entirely if it was truly a mistake.
+A: You can immediately update the Status to "Invalid" in Notion, or delete the page entirely if it was truly a mistake.
 
 **Q: Can I report incidents directly in Notion?**
 A: Yes, you can manually create pages in the Incidents database, but they won't be linked to Slack threads. The Slack bot is the recommended method.
@@ -460,8 +460,8 @@ A: The Owner drives the work and provides updates. The Accountable person ensure
 **Q: How quickly should I assign an Owner?**
 A: Critical and High severity incidents should be assigned within hours. Others can be triaged during daily standups or planning sessions.
 
-**Q: When should I mark an incident as Resolved vs Closed?**
-A: Mark as Resolved when the issue is mitigated or fixed. Mark as Closed after the postmortem is completed and all follow-up actions are documented.
+**Q: When should I mark an incident as Resolved vs Invalid?**
+A: Mark as **Resolved** when the issue is mitigated or fixed. Mark as **Invalid** if the report was a mistake, duplicate, or not an incident.
 
 **Q: Do all incidents need a postmortem?**
 A: Not all. Use your judgment based on severity, impact, and learning value. Generally, Critical and High severity incidents should have postmortems.
