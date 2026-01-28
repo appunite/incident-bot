@@ -77,7 +77,7 @@ export interface UnassignedIncident {
   severity: IncidentSeverity;
   status: 'Open' | 'In Progress';
   area: IncidentArea;
-  detectedDate: string;
+  discoverDate: string;
   daysSinceCreation: number;
   teamIds?: string[];
 }

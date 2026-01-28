@@ -102,7 +102,7 @@
   - ✅ Function: `createIncident(data: IncidentData)`
   - ✅ Maps Slack form data to Notion properties
   - ✅ Sets CreatedFrom = "Automatic"
-  - ✅ Sets Detected Date to current timestamp
+  - ✅ Sets Discover Date to current timestamp
   - ✅ Sets Trigger = "Slack /incident command"
   - ✅ Returns Notion page ID and URL
 

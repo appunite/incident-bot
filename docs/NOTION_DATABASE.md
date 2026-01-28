@@ -55,9 +55,6 @@ Below are all properties defined in the Incidents data source, with types, allow
 - **Discover Date**
     - Type: Date
     - Usage: When the incident was discovered or first noticed.
-- **Detected Date**
-    - Type: Date
-    - Usage: When it was first detected or acknowledged.
 - **Due Date**
     - Type: Date (time format H:mm)
     - Usage: Next action or target resolution checkpoint.
@@ -96,22 +93,22 @@ Below are all properties defined in the Incidents data source, with types, allow
     - Usage: Bubble up critical issues.
 - **All Incidents**
     - Type: Table
-    - Sort: Detected Date descending
-    - Columns: Title, Status, Severity, Area, Happened Date, Detected Date, Owner, Reporter, Description, Impact, Trigger, Accountable, Created From, Postmortem Completed, Slack Channel ID, Slack Thread ID, Slack Message URL, Last Synced, Updated By System, Due Date
+    - Sort: Discover Date descending
+    - Columns: Title, Status, Severity, Area, Happened Date, Discover Date, Owner, Reporter, Description, Impact, Trigger, Accountable, Created From, Postmortem Completed, Slack Channel ID, Slack Thread ID, Slack Message URL, Last Synced, Updated By System, Due Date
     - Usage: Full audit and reporting.
 - **Timeline**
     - Type: Timeline
-    - Timeline by: Detected Date
+    - Timeline by: Discover Date
     - Usage: See incident load over time.
 - **Unassigned**
     - Type: Table
-    - Sort: Detected Date descending
-    - Columns: Title, Status, Severity, Area, Happened Date, Detected Date, Reporter, Description, Impact
+    - Sort: Discover Date descending
+    - Columns: Title, Status, Severity, Area, Happened Date, Discover Date, Reporter, Description, Impact
     - Usage: Triage queue for assigning Owners.
 - **Postmortem Pending**
     - Type: Table
     - Sort: Happened Date descending
-    - Columns: Title, Status, Severity, Area, Happened Date, Detected Date, Owner, Reporter, Description, Impact, Postmortem Completed
+    - Columns: Title, Status, Severity, Area, Happened Date, Discover Date, Owner, Reporter, Description, Impact, Postmortem Completed
     - Usage: Follow-through on learnings.
 
 ---

@@ -15,7 +15,7 @@ export interface UnassignedIncident {
   severity: IncidentSeverity;
   status: 'Open' | 'In Progress' | 'Ready for Review';
   area: IncidentArea;
-  detectedDate: string;
+  discoverDate: string;
   daysSinceCreation: number;
   teamIds?: string[];
 }
@@ -23,7 +23,7 @@ export interface UnassignedIncident {
 /**
  * Fetches all unassigned incidents from Notion
  * Filters for incidents where Owner is empty and Status is Open or In Progress
- * Sorts by Detected Date (oldest first)
+ * Sorts by Discover Date (oldest first)
  */
 export async function getUnassignedIncidents(): Promise<UnassignedIncident[]> {
   try {
@@ -65,7 +65,7 @@ export async function getUnassignedIncidents(): Promise<UnassignedIncident[]> {
       },
       sorts: [
         {
-          property: 'Detected Date',
+          property: 'Discover Date',
           direction: 'ascending',
         },
       ],
@@ -77,15 +77,15 @@ export async function getUnassignedIncidents(): Promise<UnassignedIncident[]> {
       const severity = page.properties.Severity?.select?.name || 'Normal';
       const status = page.properties.Status?.status?.name || 'Open';
       const area = page.properties.Area?.select?.name || 'Internal';
-      const detectedDateStr = page.properties['Detected Date']?.date?.start;
+      const discoverDateStr = page.properties['Discover Date']?.date?.start;
       const teamIds = page.properties.Teams?.relation?.map((rel: any) => rel.id) || [];
 
       // Calculate days since creation
       let daysSinceCreation = 0;
-      if (detectedDateStr) {
-        const detectedDate = new Date(detectedDateStr);
+      if (discoverDateStr) {
+        const discoverDate = new Date(discoverDateStr);
         const now = new Date();
-        const diffTime = now.getTime() - detectedDate.getTime();
+        const diffTime = now.getTime() - discoverDate.getTime();
         daysSinceCreation = Math.floor(diffTime / (1000 * 60 * 60 * 24));
       }
 
@@ -99,7 +99,7 @@ export async function getUnassignedIncidents(): Promise<UnassignedIncident[]> {
         severity: severity as IncidentSeverity,
         status: status as 'Open' | 'In Progress' | 'Ready for Review',
         area: area as IncidentArea,
-        detectedDate: detectedDateStr || new Date().toISOString(),
+        discoverDate: discoverDateStr || new Date().toISOString(),
         daysSinceCreation,
         teamIds: teamIds.length > 0 ? teamIds : undefined,
       };
