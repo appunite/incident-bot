@@ -65,9 +65,9 @@ export async function createIncident(
           name: data.area,
         },
       },
-      'Detected Date': {
+      'Discover Date': {
         date: {
-          start: new Date().toISOString(),
+          start: data.discoverDate ?? new Date().toISOString(),
         },
       },
       'Created From': {
@@ -96,14 +96,6 @@ export async function createIncident(
       properties['Happened Date'] = {
         date: {
           start: data.happenedDate,
-        },
-      };
-    }
-
-    if (data.discoverDate) {
-      properties['Discover Date'] = {
-        date: {
-          start: data.discoverDate,
         },
       };
     }

@@ -137,12 +137,12 @@ The Incidents database includes several pre-configured views:
 **3. All Incidents** (Table view)
 - Shows all fields in a comprehensive table
 - Use for: Full audit, reporting, and detailed analysis
-- Sorted by: Detected Date (newest first)
+- Sorted by: Discover Date (newest first)
 
 **4. Timeline** (Timeline view)
 - Visualizes incidents over time
 - Use for: Understanding incident load and patterns
-- Timeline by: Detected Date
+- Timeline by: Discover Date
 
 **5. Unassigned** (Table view)
 - Filters incidents without an Owner
@@ -185,7 +185,7 @@ The Incidents database includes several pre-configured views:
 
 - **Happened Date** - When the incident actually occurred
 - **Discover Date** - When the incident was discovered or first noticed
-- **Detected Date** - When it was first detected or acknowledged (auto-set)
+- **Discover Date** - When the incident was discovered or first noticed (auto-set)
 - **Due Date** - Target resolution or next action checkpoint
 - **Created From** - Origin of the record (Manual, Automatic, Email, API, Phone)
 - **Slack Message URL** - Link to the Slack thread for context
