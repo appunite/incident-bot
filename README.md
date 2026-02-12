@@ -10,7 +10,24 @@ Enable users to create incidents directly from Slack via `/incident`, automatica
 - Data automatically pushed to Notion database.
 - Thread message in Slack confirming creation.
 - Two-way sync: status/owner updates in Notion reflect back to Slack thread.
-- Daily reminders for incidents without owner.
+- Daily digest with:
+  - unassigned incidents
+  - stale incidents not updated for too long
+
+### Daily Digest Rules
+
+Stale incidents are detected from Notion page `last_edited_time` with hardcoded thresholds:
+
+| Status | Marked stale after |
+|--------|---------------------|
+| `Open` | 7 days |
+| `Ready for Review` | 7 days |
+| `In Progress` | 28 days |
+
+Owner display in stale reminders uses fallback order:
+1. Slack mention via `users.lookupByEmail` (`<@U...>`)
+2. Owner name from Notion
+3. `Unassigned`
 
 ## 🧱 Tech Stack
 - Node.js + TypeScript

@@ -1,23 +1,26 @@
 /**
  * Daily digest message formatter
- * Formats unassigned incidents into a scheduled daily summary
+ * Formats unassigned and stale incidents into a scheduled daily summary
  */
 
-import { UnassignedIncident } from '../../notion/queries/unassignedIncidents';
+import { DigestIncident } from '../../notion/queries/unassignedIncidents';
 import { IncidentSeverity } from '../../types/incident';
 
 interface DailyDigestMessageOptions {
-  incidents: UnassignedIncident[];
+  unassignedIncidents: DigestIncident[];
+  staleIncidents: DigestIncident[];
   teamNamesMap: Map<string, string[]>; // Maps incident ID to team names
+  ownerDisplayMap: Map<string, string>; // Maps stale incident ID to owner display label
 }
 
 /**
- * Creates daily digest message for unassigned incidents
- * Groups by severity and shows key information
+ * Creates daily digest message for unassigned and stale incidents
  */
 export function createDailyDigestMessage({
-  incidents,
+  unassignedIncidents,
+  staleIncidents,
   teamNamesMap,
+  ownerDisplayMap,
 }: DailyDigestMessageOptions) {
   const today = new Date().toLocaleDateString('en-US', {
     year: 'numeric',
@@ -25,10 +28,7 @@ export function createDailyDigestMessage({
     day: 'numeric',
   });
 
-  // Note: This function is only called when incidents.length > 0
-  // Empty state is handled in the scheduler service
-
-  // Group incidents by severity
+  const totalIncidents = unassignedIncidents.length + staleIncidents.length;
   const severityOrder: IncidentSeverity[] = ['ASAP', 'High', 'Normal', 'Low'];
   const severityEmojiMap: Record<IncidentSeverity, string> = {
     'ASAP': '⚡',
@@ -37,19 +37,28 @@ export function createDailyDigestMessage({
     'Low': '🟢',
   };
 
-  const groupedIncidents = new Map<IncidentSeverity, UnassignedIncident[]>();
-  severityOrder.forEach(severity => {
-    groupedIncidents.set(severity, []);
-  });
-
-  incidents.forEach(incident => {
-    const group = groupedIncidents.get(incident.severity);
-    if (group) {
-      group.push(incident);
+  const formatDaysText = (days: number) => {
+    if (days === 0) {
+      return 'today';
     }
-  });
+    if (days === 1) {
+      return '1 day ago';
+    }
+    return `${days} days ago`;
+  };
 
-  // Build message blocks
+  const groupBySeverity = (incidents: DigestIncident[]): Map<IncidentSeverity, DigestIncident[]> => {
+    const grouped = new Map<IncidentSeverity, DigestIncident[]>();
+    severityOrder.forEach(severity => grouped.set(severity, []));
+    incidents.forEach(incident => {
+      grouped.get(incident.severity)?.push(incident);
+    });
+    return grouped;
+  };
+
+  const unassignedBySeverity = groupBySeverity(unassignedIncidents);
+  const staleBySeverity = groupBySeverity(staleIncidents);
+
   const blocks: any[] = [
     {
       type: 'header',
@@ -62,43 +71,84 @@ export function createDailyDigestMessage({
       type: 'section',
       text: {
         type: 'mrkdwn',
-        text: `⚠️ *${incidents.length} incident${incidents.length !== 1 ? 's' : ''} need${incidents.length === 1 ? 's' : ''} attention*`,
+        text: `⚠️ *${totalIncidents} incident${totalIncidents !== 1 ? 's' : ''} need${totalIncidents === 1 ? 's' : ''} attention*`,
       },
+    },
+    {
+      type: 'context',
+      elements: [
+        {
+          type: 'mrkdwn',
+          text: `Unassigned: *${unassignedIncidents.length}* | Stale: *${staleIncidents.length}*`,
+        },
+      ],
     },
     {
       type: 'divider',
     },
   ];
 
-  // Add incidents grouped by severity
-  severityOrder.forEach(severity => {
-    const incidentsInGroup = groupedIncidents.get(severity) || [];
+  if (unassignedIncidents.length > 0) {
+    blocks.push({
+      type: 'section',
+      text: {
+        type: 'mrkdwn',
+        text: '👥 *Unassigned incidents*',
+      },
+    });
 
-    incidentsInGroup.forEach(incident => {
-      const emoji = severityEmojiMap[severity];
-      const teamNames = teamNamesMap.get(incident.id) || [];
-      const teamInfo = teamNames.length > 0
-        ? teamNames.join(', ')
-        : 'No team';
+    severityOrder.forEach(severity => {
+      const incidentsInGroup = unassignedBySeverity.get(severity) || [];
+      incidentsInGroup.forEach(incident => {
+        const emoji = severityEmojiMap[severity];
+        const teamNames = teamNamesMap.get(incident.id) || [];
+        const teamInfo = teamNames.length > 0 ? teamNames.join(', ') : 'No team';
+        const daysText = formatDaysText(incident.daysSinceCreation);
 
-      // Format days ago
-      const daysText = incident.daysSinceCreation === 0
-        ? 'today'
-        : incident.daysSinceCreation === 1
-        ? '1 day ago'
-        : `${incident.daysSinceCreation} days ago`;
-
-      blocks.push({
-        type: 'section',
-        text: {
-          type: 'mrkdwn',
-          text: `${emoji} *${severity}* | ${daysText}\n*${incident.title}*\nTeam: ${teamInfo} | Area: ${incident.area}\n📝 <${incident.url}|View in Notion>`,
-        },
+        blocks.push({
+          type: 'section',
+          text: {
+            type: 'mrkdwn',
+            text: `${emoji} *${severity}* | ${daysText}\n*${incident.title}*\nStatus: ${incident.status} | Team: ${teamInfo} | Area: ${incident.area}\n📝 <${incident.url}|View in Notion>`,
+          },
+        });
       });
     });
-  });
+  }
 
-  // Add footer
+  if (staleIncidents.length > 0) {
+    if (unassignedIncidents.length > 0) {
+      blocks.push({ type: 'divider' });
+    }
+
+    blocks.push({
+      type: 'section',
+      text: {
+        type: 'mrkdwn',
+        text: '⏰ *Stale incidents (no updates for too long)*',
+      },
+    });
+
+    severityOrder.forEach(severity => {
+      const incidentsInGroup = staleBySeverity.get(severity) || [];
+      incidentsInGroup.forEach(incident => {
+        const emoji = severityEmojiMap[severity];
+        const teamNames = teamNamesMap.get(incident.id) || [];
+        const teamInfo = teamNames.length > 0 ? teamNames.join(', ') : 'No team';
+        const owner = ownerDisplayMap.get(incident.id) || 'Unassigned';
+        const staleText = formatDaysText(incident.daysSinceLastUpdate);
+
+        blocks.push({
+          type: 'section',
+          text: {
+            type: 'mrkdwn',
+            text: `${emoji} *${severity}* | *${incident.status}* | Last update: ${staleText}\n*${incident.title}*\nOwner: ${owner} | Team: ${teamInfo} | Area: ${incident.area}\n📝 <${incident.url}|View in Notion>`,
+          },
+        });
+      });
+    });
+  }
+
   blocks.push(
     {
       type: 'divider',
@@ -108,14 +158,14 @@ export function createDailyDigestMessage({
       elements: [
         {
           type: 'mrkdwn',
-          text: '💡 Assign owners in Notion to resolve these incidents',
+          text: '💡 Assign owners and post progress updates in Notion to remove incidents from this digest.',
         },
       ],
     }
   );
 
   return {
-    text: `📋 Daily Incident Digest - ${today} (${incidents.length} unassigned)`,
+    text: `📋 Daily Incident Digest - ${today} (${totalIncidents} needing attention)`,
     blocks,
   };
 }

@@ -1,10 +1,14 @@
 /**
  * Daily Digest Scheduler Service
- * Sends daily summary of unassigned incidents to configured Slack channel
+ * Sends daily summary of unassigned and stale incidents to configured Slack channel
  */
 
 import * as cron from 'node-cron';
-import { getUnassignedIncidents } from '../notion/queries/unassignedIncidents';
+import {
+  getDigestIncidents,
+  DigestIncident,
+  DigestIncidentStatus,
+} from '../notion/queries/unassignedIncidents';
 import { createDailyDigestMessage } from '../slack/messages/dailyDigest';
 import { slackApp } from '../slack/client';
 import { getTeamNamesByIds } from '../notion/teamsCache';
@@ -13,8 +17,80 @@ import { createModuleLogger } from '../utils/logger';
 
 const logger = createModuleLogger('daily-digest-scheduler');
 
+const staleThresholdDaysByStatus: Record<DigestIncidentStatus, number> = {
+  'Open': 7,
+  'Ready for Review': 7,
+  'In Progress': 28,
+};
+
+function isStaleIncident(incident: DigestIncident): boolean {
+  return incident.daysSinceLastUpdate >= staleThresholdDaysByStatus[incident.status];
+}
+
+async function buildOwnerDisplayMap(
+  staleIncidents: DigestIncident[]
+): Promise<Map<string, string>> {
+  const ownerDisplayMap = new Map<string, string>();
+  const emailToMentionCache = new Map<string, string | undefined>();
+  let mentionResolvedCount = 0;
+  let mentionFallbackCount = 0;
+  let unassignedCount = 0;
+
+  for (const incident of staleIncidents) {
+    if (!incident.ownerNotionId) {
+      ownerDisplayMap.set(incident.id, 'Unassigned');
+      unassignedCount += 1;
+      continue;
+    }
+
+    if (!incident.ownerEmail) {
+      ownerDisplayMap.set(incident.id, incident.ownerName || 'Unassigned');
+      mentionFallbackCount += 1;
+      continue;
+    }
+
+    let mention = emailToMentionCache.get(incident.ownerEmail);
+
+    if (mention === undefined) {
+      try {
+        const result = await slackApp.client.users.lookupByEmail({
+          email: incident.ownerEmail,
+        });
+
+        mention = result.user?.id ? `<@${result.user.id}>` : undefined;
+      } catch (error) {
+        logger.warn('Failed to resolve Slack owner mention by email', {
+          incidentId: incident.id,
+          ownerEmail: incident.ownerEmail,
+          message: error instanceof Error ? error.message : 'Unknown error',
+        });
+        mention = undefined;
+      }
+
+      emailToMentionCache.set(incident.ownerEmail, mention);
+    }
+
+    if (mention) {
+      ownerDisplayMap.set(incident.id, mention);
+      mentionResolvedCount += 1;
+    } else {
+      ownerDisplayMap.set(incident.id, incident.ownerName || 'Unassigned');
+      mentionFallbackCount += 1;
+    }
+  }
+
+  logger.info('Resolved stale incident owner display values', {
+    staleCount: staleIncidents.length,
+    mentionResolvedCount,
+    mentionFallbackCount,
+    unassignedCount,
+  });
+
+  return ownerDisplayMap;
+}
+
 /**
- * Sends daily digest of unassigned incidents
+ * Sends daily digest of unassigned and stale incidents
  * Non-blocking - errors are logged but don't crash the app
  */
 export async function sendDailyDigest(): Promise<void> {
@@ -29,32 +105,54 @@ export async function sendDailyDigest(): Promise<void> {
       channel: env.SLACK_DIGEST_CHANNEL_ID,
     });
 
-    // Fetch unassigned incidents
-    const incidents = await getUnassignedIncidents();
+    const incidents = await getDigestIncidents();
+    const staleIncidents = incidents.filter(isStaleIncident);
+    const staleIncidentIds = new Set(staleIncidents.map(incident => incident.id));
+    const unassignedIncidents = incidents.filter(
+      incident => !incident.ownerNotionId && !staleIncidentIds.has(incident.id)
+    );
 
-    logger.info('Unassigned incidents fetched', {
-      count: incidents.length,
+    const staleByStatus = staleIncidents.reduce(
+      (acc, incident) => {
+        acc[incident.status] += 1;
+        return acc;
+      },
+      {
+        'Open': 0,
+        'In Progress': 0,
+        'Ready for Review': 0,
+      } as Record<DigestIncidentStatus, number>
+    );
+
+    logger.info('Digest incidents classified', {
+      totalCount: incidents.length,
+      unassignedCount: unassignedIncidents.length,
+      staleCount: staleIncidents.length,
+      staleByStatus,
     });
 
-    // Skip sending digest if no unassigned incidents
-    if (incidents.length === 0) {
-      logger.info('No unassigned incidents, skipping daily digest');
+    if (unassignedIncidents.length === 0 && staleIncidents.length === 0) {
+      logger.info('No unassigned or stale incidents, skipping daily digest');
       return;
     }
 
-    // Resolve team names for all incidents
+    const incidentsToDisplay = [...staleIncidents, ...unassignedIncidents];
+
     const teamNamesMap = new Map<string, string[]>();
-    incidents.forEach(incident => {
+    incidentsToDisplay.forEach(incident => {
       if (incident.teamIds && incident.teamIds.length > 0) {
         const teamNames = getTeamNamesByIds(incident.teamIds);
         teamNamesMap.set(incident.id, teamNames);
       }
     });
 
-    // Format the digest message
+    const ownerDisplayMap = await buildOwnerDisplayMap(staleIncidents);
+
     const digestMessage = createDailyDigestMessage({
-      incidents,
+      unassignedIncidents,
+      staleIncidents,
       teamNamesMap,
+      ownerDisplayMap,
     });
 
     // Post to Slack digest channel
@@ -65,7 +163,8 @@ export async function sendDailyDigest(): Promise<void> {
 
     logger.info('Daily digest sent successfully', {
       channel: env.SLACK_DIGEST_CHANNEL_ID,
-      incidentCount: incidents.length,
+      unassignedCount: unassignedIncidents.length,
+      staleCount: staleIncidents.length,
     });
   } catch (error) {
     // Non-blocking: log error but don't crash the app

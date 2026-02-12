@@ -14,7 +14,18 @@
 - If Status/Owner changes → post Slack thread update.
 
 ## Daily Digest
-- Once daily: list incidents without owner in Slack.
+- Once daily: post a Slack digest with two sections:
+  - Unassigned incidents.
+  - Stale incidents (not updated for too long).
+- Staleness source: Notion page `last_edited_time`.
+- Thresholds:
+  - `Open`: 7 days without updates
+  - `Ready for Review`: 7 days without updates
+  - `In Progress`: 28 days without updates
+- Stale section owner display:
+  - Best effort Slack mention by owner email
+  - Fallback to Notion owner name
+  - Fallback to `Unassigned`
 
 ## Postmortem Reminder
 - 24h after resolving: reminder to fill Postmortem section.

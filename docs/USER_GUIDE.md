@@ -246,6 +246,28 @@ The Incidents database includes several pre-configured views:
 
 > **Note:** Only the incident **Owner** should change the status to "Resolved" or "Invalid".
 
+### Daily Digest Operations (Triage Team)
+
+Every weekday, the digest in Slack includes:
+- **Unassigned incidents** (need owner assignment)
+- **Stale incidents** (no updates for too long)
+
+Stale thresholds:
+- **Open**: 7 days without updates
+- **Ready for Review**: 7 days without updates
+- **In Progress**: 28 days without updates
+
+Owner display in stale reminders:
+- First tries Slack mention (resolved from owner email)
+- Falls back to owner name from Notion
+- Falls back to `Unassigned`
+
+How to clear stale status:
+1. Open the incident in Notion from the digest link.
+2. Add a meaningful progress update (or update relevant fields).
+3. Ensure Owner/Status are current.
+4. Save changes. The incident will stop matching stale criteria after the update timestamp refreshes.
+
 ### Using the Slack Thread Link
 
 Every incident page includes a **Slack Message URL** that links back to the Slack conversation.
