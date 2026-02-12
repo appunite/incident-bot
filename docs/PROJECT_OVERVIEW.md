@@ -45,7 +45,7 @@ This leads to frustration, lost context, duplicated work, and delayed resolution
 | **Slash Command `/incident`** | Opens a modal in Slack for structured incident submission. |
 | **Notion Sync** | Automatically creates a page in Notion’s “Incidents” database. |
 | **Slack Thread Confirmation** | Bot posts a confirmation message (and later, updates) in the same Slack thread. |
-| **Daily Digest** | A daily Slack message listing unassigned incidents. |
+| **Daily Digest** | A daily Slack message listing unassigned incidents and stale incidents by status-based inactivity thresholds. |
 | **Postmortem Reminder** | After 24h of resolving an incident, sends reminder to fill postmortem section. |
 
 ---
@@ -111,4 +111,3 @@ When generating code or task plans:
 - Use Notion as the only database
 - Treat Slack as the main interaction layer
 - Default tone for bot messages: *neutral, factual, human*
-
