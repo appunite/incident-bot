@@ -223,6 +223,7 @@ export async function handleIncidentSubmission({
           notionPageUrl: notionResult.url,
           teamNames,
           slackThreadUrl,
+          triageGroupId: env.SLACK_TRIAGE_GROUP_ID,
         });
 
         await slackApp.client.chat.postMessage({

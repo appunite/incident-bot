@@ -19,6 +19,7 @@ Notion Database (Incidents)
 ### 1. Slack Layer
 - Implemented with `@slack/bolt`.
 - Handles slash commands, modal views, thread messages, and notifications.
+- Mentions the triage user group from `SLACK_TRIAGE_GROUP_ID` in the new-incident notification, so every new report has a named group expected to triage it. The scheduled daily digest is deliberately left without a mention.
 
 ### 2. Notion Layer
 - Uses `@notionhq/client`.

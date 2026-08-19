@@ -33,6 +33,7 @@ export function loadEnvConfig(): EnvConfig {
     SLACK_BOT_TOKEN: process.env.SLACK_BOT_TOKEN!,
     SLACK_SIGNING_SECRET: process.env.SLACK_SIGNING_SECRET!,
     SLACK_DIGEST_CHANNEL_ID: process.env.SLACK_DIGEST_CHANNEL_ID,
+    SLACK_TRIAGE_GROUP_ID: process.env.SLACK_TRIAGE_GROUP_ID,
     NOTION_TOKEN: process.env.NOTION_TOKEN!,
     NOTION_DB_ID: process.env.NOTION_DB_ID!,
     NOTION_TEAMS_DB_ID: process.env.NOTION_TEAMS_DB_ID,

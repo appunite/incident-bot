@@ -7,6 +7,7 @@ export interface EnvConfig {
   SLACK_BOT_TOKEN: string;
   SLACK_SIGNING_SECRET: string;
   SLACK_DIGEST_CHANNEL_ID?: string;
+  SLACK_TRIAGE_GROUP_ID?: string;
 
   // Notion
   NOTION_TOKEN: string;

@@ -4,12 +4,14 @@
  */
 
 import { IncidentFormData, IncidentSeverity } from '../../types/incident';
+import { formatUserGroupMention } from '../mentions';
 
 interface DigestMessageOptions {
   incidentData: IncidentFormData;
   notionPageUrl: string;
   teamNames?: string[];
   slackThreadUrl?: string;
+  triageGroupId?: string;
 }
 
 /**
@@ -21,6 +23,7 @@ export function createDigestMessage({
   notionPageUrl,
   teamNames = [],
   slackThreadUrl,
+  triageGroupId,
 }: DigestMessageOptions) {
   const severityEmojiMap: Record<IncidentSeverity, string> = {
     'ASAP': '⚡',
@@ -41,38 +44,54 @@ export function createDigestMessage({
     ? teamNames.join(', ')
     : 'No team assigned';
 
+  // Mention the triage group so new reports get picked up
+  const triageMention = formatUserGroupMention(triageGroupId);
+
   // Build links section
   const links = [`📝 <${notionPageUrl}|View in Notion>`];
   if (slackThreadUrl) {
     links.push(`💬 <${slackThreadUrl}|Slack Thread>`);
   }
 
-  return {
-    text: `🚨 New Incident: ${incidentData.title}`,
-    blocks: [
-      {
-        type: 'section',
-        text: {
-          type: 'mrkdwn',
-          text: `🚨 *New Incident: ${incidentData.title}*\n${severityEmoji} *${incidentData.severity}* | Team: ${teamInfo} | Reporter: <@${incidentData.createdBy}>`,
-        },
+  const blocks: any[] = [
+    {
+      type: 'section',
+      text: {
+        type: 'mrkdwn',
+        text: `🚨 *New Incident: ${incidentData.title}*\n${severityEmoji} *${incidentData.severity}* | Team: ${teamInfo} | Reporter: <@${incidentData.createdBy}>`,
       },
-      {
-        type: 'section',
-        text: {
-          type: 'mrkdwn',
-          text: `*Description:*\n${truncatedDesc}`,
-        },
+    },
+    {
+      type: 'section',
+      text: {
+        type: 'mrkdwn',
+        text: `*Description:*\n${truncatedDesc}`,
       },
+    },
+  ];
+
+  if (triageMention) {
+    blocks.push({
+      type: 'section',
+      text: {
+        type: 'mrkdwn',
+        text: `${triageMention} please triage this incident: confirm severity and assign an Owner in Notion.`,
+      },
+    });
+  }
+
+  blocks.push({
+    type: 'context',
+    elements: [
       {
-        type: 'context',
-        elements: [
-          {
-            type: 'mrkdwn',
-            text: links.join(' • '),
-          },
-        ],
+        type: 'mrkdwn',
+        text: links.join(' • '),
       },
     ],
+  });
+
+  return {
+    text: `🚨 New Incident: ${incidentData.title}`,
+    blocks,
   };
 }
