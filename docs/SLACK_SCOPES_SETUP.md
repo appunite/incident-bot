@@ -149,6 +149,8 @@ curl -s -H "Authorization: Bearer $SLACK_BOT_TOKEN" https://slack.com/api/usergr
 - Posting a group mention needs **no extra scope** — `chat:write` is enough, because the
   mention is plain `<!subteam^ID>` markup in the message text.
 - `usergroups:read` is only needed for the one-off lookup above, and can be removed afterwards.
+- `team:read` is **not** required. Slack thread links use the workspace-agnostic
+  `app.slack.com` host, so the bot never has to look up the workspace domain.
 
 ### Behavior
 
