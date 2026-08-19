@@ -99,6 +99,9 @@ This method lets you convert an existing Slack message into an incident.
      - Incident details
      - Direct link to the Notion page
      - Easy access to view and manage the incident
+   - A notification is also posted to `#shit-happens-notifications`, mentioning the
+     `@incident-triage` user group so someone picks the incident up for triage
+   - Group membership is managed in Slack, not in the bot
 
 3. **Slack Thread Link**
    - The Notion page includes a link back to the Slack thread

@@ -104,3 +104,55 @@ These scopes grant the bot access to message history in channels where it's invi
 - Message is standalone (not part of a thread)
 - Thread fetch fails (gracefully continues without thread context)
 - Bot lacks the required scopes (logs warning, continues without thread context)
+
+---
+
+## Triage User Group (`@incident-triage`)
+
+The new-incident notification posted to the digest channel mentions a Slack user group,
+so every new report lands on a named group instead of nobody in particular.
+
+The scheduled daily digest does **not** mention the group — it is a recurring summary,
+not a new report, and pinging a group every weekday turns the mention into noise.
+
+### Creating the Group
+
+1. In Slack, go to **People & user groups** → **User groups** → **Create a user group**.
+2. Name: `Incident Triage`, handle: `incident-triage`.
+3. Add the people responsible for triage (SD / Accounts / Heads).
+4. Optionally set the group's default channel to `#shit-happens-notifications`.
+
+> User groups require a paid Slack plan. Without one, use an env-configured channel
+> mention or a plain list of users instead.
+
+### Finding the Group ID
+
+The bot mentions the group by ID (`S…`), not by handle, so renaming the handle does
+not break the mention.
+
+In the Appunite workspace, `@incident-triage` is `S0BR0C4PF99`:
+
+```
+SLACK_TRIAGE_GROUP_ID=S0BR0C4PF99
+```
+
+For any other workspace, call `usergroups.list` with a token that has the
+`usergroups:read` scope and read the `id` field of the entry whose `handle` is
+`incident-triage`:
+
+```bash
+curl -s -H "Authorization: Bearer $SLACK_BOT_TOKEN" https://slack.com/api/usergroups.list
+```
+
+### Scopes
+
+- Posting a group mention needs **no extra scope** — `chat:write` is enough, because the
+  mention is plain `<!subteam^ID>` markup in the message text.
+- `usergroups:read` is only needed for the one-off lookup above, and can be removed afterwards.
+
+### Behavior
+
+- No `SLACK_TRIAGE_GROUP_ID` set → the notification is posted exactly as before, without a mention.
+- No `SLACK_DIGEST_CHANNEL_ID` set → no digest-channel messages are sent at all, so the
+  mention never fires.
+- Daily digest → never mentions the group, regardless of configuration.

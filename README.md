@@ -13,6 +13,7 @@ Enable users to create incidents directly from Slack via `/incident`, automatica
 - Daily digest with:
   - unassigned incidents
   - stale incidents not updated for too long
+- New-incident notifications in the digest channel mention the triage user group (`@incident-triage`) so new reports get picked up.
 
 ### Daily Digest Rules
 
@@ -47,6 +48,8 @@ Owner display in stale reminders uses fallback order:
 |-----------|--------------|
 | `SLACK_BOT_TOKEN` | OAuth token from Slack app |
 | `SLACK_SIGNING_SECRET` | Secret from Slack app |
+| `SLACK_DIGEST_CHANNEL_ID` | Optional channel for digest-channel Slack notifications |
+| `SLACK_TRIAGE_GROUP_ID` | Optional Slack user group ID (`@incident-triage`) mentioned in new-incident notifications for triage |
 | `NOTION_TOKEN` | Notion integration token |
 | `NOTION_DB_ID` | ID of the Incidents database |
 | `PORT` | Local port for dev (default 3000) |
