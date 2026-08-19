@@ -10,6 +10,7 @@ import { slackApp } from '../client';
 import { createConfirmationMessage } from '../messages/confirmationMessage';
 import { createDigestMessage } from '../messages/digestMessage';
 import { fetchThreadMessages } from '../fetchThreadMessages';
+import { buildSlackThreadUrl } from '../threadUrl';
 import { findNotionUserByEmail, findNotionUserByName } from '../../notion/findUser';
 import { updateNotionPageWithSlackInfo } from '../../notion/updateSlackInfo';
 import { getTeamNamesByIds } from '../../notion/teamsCache';
@@ -213,9 +214,10 @@ export async function handleIncidentSubmission({
         // Build Slack thread URL if from message action
         let slackThreadUrl: string | undefined;
         if (messageActionContext.sourceChannelId && messageActionContext.sourceThreadTs) {
-          const workspace = await slackApp.client.team.info();
-          const workspaceDomain = workspace.team?.domain || 'slack';
-          slackThreadUrl = `https://${workspaceDomain}.slack.com/archives/${messageActionContext.sourceChannelId}/p${messageActionContext.sourceThreadTs.replace('.', '')}`;
+          slackThreadUrl = buildSlackThreadUrl(
+            messageActionContext.sourceChannelId,
+            messageActionContext.sourceThreadTs
+          );
         }
 
         const digestMsg = createDigestMessage({

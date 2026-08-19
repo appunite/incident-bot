@@ -3,6 +3,7 @@
  */
 
 import { notionClient } from './client';
+import { buildSlackThreadUrl } from '../slack/threadUrl';
 import { createModuleLogger } from '../utils/logger';
 
 const logger = createModuleLogger('notion-slack-update');
@@ -11,15 +12,6 @@ export interface SlackThreadInfo {
   channelId: string;
   messageTs: string;
   workspaceDomain?: string;
-}
-
-/**
- * Constructs Slack thread URL from channel ID and message timestamp
- */
-function buildSlackThreadUrl(channelId: string, messageTs: string, workspaceDomain?: string): string {
-  const tsWithoutDot = messageTs.replace('.', '');
-  const domain = workspaceDomain || 'app';
-  return `https://${domain}.slack.com/archives/${channelId}/p${tsWithoutDot}`;
 }
 
 /**
