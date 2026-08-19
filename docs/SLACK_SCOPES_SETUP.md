@@ -130,19 +130,21 @@ not a new report, and pinging a group every weekday turns the mention into noise
 The bot mentions the group by ID (`S…`), not by handle, so renaming the handle does
 not break the mention.
 
-In the Appunite workspace, `@incident-triage` is `S0BR0C4PF99`:
-
-```
-SLACK_TRIAGE_GROUP_ID=S0BR0C4PF99
-```
-
-For any other workspace, call `usergroups.list` with a token that has the
-`usergroups:read` scope and read the `id` field of the entry whose `handle` is
-`incident-triage`:
+Call `usergroups.list` with a token that has the `usergroups:read` scope and read the
+`id` field of the entry whose `handle` is `incident-triage`:
 
 ```bash
 curl -s -H "Authorization: Bearer $SLACK_BOT_TOKEN" https://slack.com/api/usergroups.list
 ```
+
+Then set it in the deployment environment:
+
+```
+SLACK_TRIAGE_GROUP_ID=S01234ABCDE
+```
+
+> This repository is public. Do not commit real workspace IDs - keep them in the
+> deployment environment and use placeholders in `.env.example` and docs.
 
 ### Scopes
 
