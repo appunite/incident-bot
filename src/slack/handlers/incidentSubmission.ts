@@ -27,6 +27,9 @@ export async function handleIncidentSubmission({
   body,
   client,
 }: SlackViewMiddlewareArgs & AllMiddlewareArgs): Promise<void> {
+  // Set once the Notion page exists, so a later failure can still point the reporter to it
+  let createdIncidentUrl: string | undefined;
+
   try {
     logger.info('Incident submission received', {
       userId: body.user.id,
@@ -146,6 +149,7 @@ export async function handleIncidentSubmission({
 
     logger.info('Creating incident in Notion');
     const notionResult = await createIncident(incidentData, threadMessages);
+    createdIncidentUrl = notionResult.url;
 
     logger.info('Posting confirmation to Slack', {
       channelId,
@@ -159,29 +163,75 @@ export async function handleIncidentSubmission({
     });
 
     let slackMessage;
+    // Where the confirmation actually landed - differs from channelId when the bot has
+    // no access to the source channel and falls back to a DM.
+    let confirmationChannelId = channelId;
 
     if (isFromMessageAction && sourceIsChannel) {
-      slackMessage = await slackApp.client.chat.postMessage({
-        channel: channelId,
-        thread_ts: messageActionContext.sourceThreadTs,
-        ...confirmationMsg,
-      });
+      try {
+        slackMessage = await slackApp.client.chat.postMessage({
+          channel: channelId,
+          thread_ts: messageActionContext.sourceThreadTs,
+          ...confirmationMsg,
+        });
 
-      logger.info('Posted public thread reply in channel', {
-        channel: channelId,
-        threadTs: messageActionContext.sourceThreadTs,
-        messageTs: slackMessage.ts,
-      });
+        logger.info('Posted public thread reply in channel', {
+          channel: channelId,
+          threadTs: messageActionContext.sourceThreadTs,
+          messageTs: slackMessage.ts,
+        });
 
-      await slackApp.client.chat.postEphemeral({
-        channel: channelId,
-        user: body.user.id,
-        text: `✅ Incident reported successfully! View in Notion: ${notionResult.url}`,
-      });
+        try {
+          await slackApp.client.chat.postEphemeral({
+            channel: channelId,
+            user: body.user.id,
+            text: `✅ Incident reported successfully! View in Notion: ${notionResult.url}`,
+          });
 
-      logger.info('Posted ephemeral confirmation to user', {
-        userId: body.user.id,
-      });
+          logger.info('Posted ephemeral confirmation to user', {
+            userId: body.user.id,
+          });
+        } catch (ephemeralError) {
+          // Non-blocking: the thread reply already confirms the incident
+          logger.warn('Failed to post ephemeral confirmation', {
+            userId: body.user.id,
+            message: ephemeralError instanceof Error ? ephemeralError.message : 'Unknown error',
+          });
+        }
+      } catch (channelError) {
+        // Typically a private channel the bot was never invited to: chat:write.public
+        // only covers public channels. DM the reporter instead of losing the incident.
+        logger.warn('Failed to post confirmation in source channel, falling back to DM', {
+          channel: channelId,
+          userId: body.user.id,
+          message: channelError instanceof Error ? channelError.message : 'Unknown error',
+        });
+
+        const fallbackBlocks: any[] = [
+          ...confirmationMsg.blocks,
+          {
+            type: 'context',
+            elements: [
+              {
+                type: 'mrkdwn',
+                text: '⚠️ I could not post this in the channel you reported from. Invite me to that channel to get confirmations in the thread.',
+              },
+            ],
+          },
+        ];
+
+        slackMessage = await slackApp.client.chat.postMessage({
+          channel: body.user.id,
+          ...confirmationMsg,
+          blocks: fallbackBlocks,
+        });
+        confirmationChannelId = body.user.id;
+
+        logger.info('Posted confirmation to user DM after channel failure', {
+          userId: body.user.id,
+          messageTs: slackMessage.ts,
+        });
+      }
     } else {
       slackMessage = await slackApp.client.chat.postMessage({
         channel: channelId,
@@ -194,10 +244,16 @@ export async function handleIncidentSubmission({
       });
     }
 
-    await updateNotionPageWithSlackInfo(notionResult.id, {
-      channelId,
-      messageTs: slackMessage.ts!,
-    });
+    if (slackMessage?.ts) {
+      await updateNotionPageWithSlackInfo(notionResult.id, {
+        channelId: confirmationChannelId,
+        messageTs: slackMessage.ts,
+      });
+    } else {
+      logger.warn('No Slack confirmation message posted, skipping Notion Slack info update', {
+        notionPageId: notionResult.id,
+      });
+    }
 
     // Send digest notification to configured channel (if set)
     if (env.SLACK_DIGEST_CHANNEL_ID) {
@@ -262,9 +318,13 @@ export async function handleIncidentSubmission({
     });
 
     try {
+      const reason = error instanceof Error ? error.message : 'Unknown error';
+
       await client.chat.postMessage({
         channel: body.user.id,
-        text: `Sorry, there was an error creating the incident: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        text: createdIncidentUrl
+          ? `The incident was created, but something went wrong afterwards: ${reason}\nView it in Notion: ${createdIncidentUrl}`
+          : `Sorry, there was an error creating the incident: ${reason}`,
       });
     } catch (notifyError) {
       logger.error('Failed to notify user about error', notifyError);
