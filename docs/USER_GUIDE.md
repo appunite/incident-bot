@@ -103,6 +103,11 @@ This method lets you convert an existing Slack message into an incident.
      `@incident-triage` user group so someone picks the incident up for triage
    - Group membership is managed in Slack, not in the bot
 
+> **Reporting from a private channel:** the bot can only reply in the thread if it is a
+> member of that channel. If it is not, the incident is still created and triage is still
+> notified — the confirmation simply arrives as a DM instead of a thread reply. Invite the
+> bot to the channel if you want confirmations in the thread.
+
 3. **Slack Thread Link**
    - The Notion page includes a link back to the Slack thread
    - This creates a two-way connection between Slack and Notion
